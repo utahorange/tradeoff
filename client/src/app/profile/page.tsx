@@ -107,7 +107,7 @@ export default function ProfilePage() {
             </table>
           </div>
         ) : (
-          <p className="text-gray-500">You haven't participated in any competitions yet.</p>
+          <p className="text-gray-500">You haven&apos;t participated in any competitions yet.</p>
         )}
         
         <div className="mt-6">

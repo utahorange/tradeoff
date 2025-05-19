@@ -185,7 +185,7 @@ export default function CompetitionsPage() {
               <th className="py-3 px-4 font-semibold text-sm text-black">Rank</th>
               <th className="py-3 px-4 font-semibold text-sm text-black">User</th>
               <th className="py-3 px-4 font-semibold text-sm text-black">Account Value</th>
-              <th className="py-3 px-4 font-semibold text-sm text-black">Today's Change</th>
+              <th className="py-3 px-4 font-semibold text-sm text-black">Today&apos;s Change</th>
               <th className="py-3 px-4 font-semibold text-sm text-black">Overall Change</th>
             </tr>
           </thead>

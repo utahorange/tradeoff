@@ -16,7 +16,9 @@ export interface CompetitionRecord {
 }
 
 // Base URL for API calls
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+// TODO: put this back when implemented
+
 
 /**
  * Fetch user profile data
@@ -26,7 +28,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/a
 export async function getUserProfile(userId: string): Promise<UserProfile> {
   // In a real application, this would make an actual API call
   // For now, we'll return mock data
-  
+
+  console.log('Fetching user profile for userId:', userId); // TODO: remove when actually implemented
+
   // Mock implementation - replace with actual API call when backend is ready
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -54,6 +58,8 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
  */
 export async function getUserCompetitions(userId: string): Promise<CompetitionRecord[]> {
   // Mock implementation - replace with actual API call when backend is ready
+
+  console.log('Fetching user competitions for userId:', userId); // TODO: remove when actually implemented
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve([
