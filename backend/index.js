@@ -5,8 +5,13 @@ require('dotenv').config();
 const app = express();
 const PORT = 3000;
 
+const cors = require('cors');
+app.use(cors());
+
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
+
+console.log(`Finnhub API Key: ${FINNHUB_API_KEY}`);
 
 // general utility function to make GET requests to Finnhub
 async function finnhubGet(endpoint, params = {}) {
@@ -42,16 +47,29 @@ app.get('/api/profile/:symbol', async (req, res) => {
 });
 
 // prices over time (daily, weekly, minute, etc.)
-const from = Math.floor(new Date('2024-01-01').getTime() / 1000);
-const to = Math.floor(new Date().getTime() / 1000); // now
-
-finnhubClient.stockCandles("AAPL", "D", from, to, (error, data, response) => {
-  if (error) {
-    console.error("Candle error:", error);
-  } else {
-    console.log("Historical candles:", data);
-  }
-});
+app.get('/api/candles/:symbol', async (req, res) => {
+    try {
+      const { resolution, from, to } = req.query;
+  
+      if (!resolution || !from || !to) {
+        return res.status(400).json({ error: 'Missing required query parameters: resolution, from, to' });
+      }
+  
+      const data = await finnhubGet('stock/candle', {
+        symbol: req.params.symbol,
+        resolution,
+        from,
+        to,
+      });
+  
+      res.json(data);
+    } catch (err) {
+      console.error('Error in /api/candles:', err.message);  // <-- log the actual error
+      res.status(500).json({ error: 'Failed to fetch candles', message: err.message });
+    }
+  });
+  
+  
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

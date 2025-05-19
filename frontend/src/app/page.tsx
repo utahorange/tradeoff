@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -11,6 +11,16 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+
+type CandleData = {
+  c: number[]; // close prices
+  h: number[]; // high prices
+  l: number[]; // low prices
+  o: number[]; // open prices
+  s: string;   // status
+  t: number[]; // timestamps (UNIX)
+  v: number[]; // volumes
+};
 
 // More detailed sample data for the portfolio
 const sampleData = [
@@ -42,8 +52,28 @@ const sampleData = [
 
 export default function Home() {
   const [timeRange, setTimeRange] = useState('6M');
+  const [stockPrice, setStockPrice] = useState(0);
   const [currentValue, setCurrentValue] = useState(sampleData[sampleData.length - 1].value);
   const [previousValue, setPreviousValue] = useState(sampleData[sampleData.length - 2].value);
+
+  useEffect(() => {
+    const fetchQuote = async () => {
+      try {
+        const symbol = 'AAPL';
+        const res = await fetch(`http://localhost:3000/api/quote/${symbol}`);
+        if (!res.ok) throw new Error('Failed to fetch quote data');
+        const data = await res.json();
+        console.log(data);
+        setStockPrice(data.c);
+      } catch (error) {
+        console.error('Error fetching quote data:', error);
+      }
+    };
+
+    fetchQuote();
+  }, []);
+
+
 
   const calculatePercentageChange = (current: number, previous: number) => {
     return ((current - previous) / previous) * 100;
@@ -69,6 +99,7 @@ export default function Home() {
   return (
     <main className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">Current Price: {stockPrice}</h1>
         <h1 className="text-3xl font-bold mb-8">Portfolio Dashboard</h1>
         
         {/* Time range selector */}
