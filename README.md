@@ -6,8 +6,8 @@ Put Finnhub secret key in a file named `.env` in the `backend` folder. The file 
 Make sure to also install requirements.
 ```
 cd server
-pip install -r requirements.txt
-python app.py
+npm install
+npm start
 cd ../client
 npm install
 npm run dev
