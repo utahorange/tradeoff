@@ -2,8 +2,13 @@
 
 # virtual env
 .venv
+.next
+node_modules
+venv
+
 # local env files
 .env
+.env.local
 
 # dependencies
 /node_modules
