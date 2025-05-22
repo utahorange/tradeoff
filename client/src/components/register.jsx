@@ -1,36 +1,66 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: ''
+    });
+    const [message, setMessage] = useState('');
+    const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+    const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+    const onSubmit = async e => {
         e.preventDefault();
         try {
-            const response = await fetch("http://localhost:3000/register", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ username, email, password })
-            });
-            const data = await response.json();
-            console.log(data);
-        } catch (error) {
-            console.error("Error registering user:", error);
+            await axios.post('http://localhost:8080/api/register', formData);
+            setMessage('Registration successful! Redirecting to login...');
+            setTimeout(() => navigate('/login'), 1500); // Redirect after 1.5s
+        } catch (err) {
+            setMessage(
+                err.response && err.response.data && err.response.data.message
+                    ? err.response.data.message
+                    : 'Registration failed. Please try again.'
+            );
         }
     };
 
     return (
-        <div>
-            <h1>Register</h1>
-            <form onSubmit={handleSubmit}>
-                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                <button type="submit" onClick={handleSubmit}>Register</button>
+        <div className="auth-form">
+            <h2>Register</h2>
+            <form onSubmit={onSubmit}>
+                <input
+                    type="text"
+                    placeholder="Username"
+                    name="username"
+                    value={formData.username}
+                    onChange={onChange}
+                    required
+                />
+                <input
+                    type="email"
+                    placeholder="Email"
+                    name="email"
+                    value={formData.email}
+                    onChange={onChange}
+                    required
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    name="password"
+                    value={formData.password}
+                    onChange={onChange}
+                    required
+                />
+                <button type="submit">Register</button>
             </form>
+            <p className="message">{message}</p>
         </div>
-    )
-}
+    );
+};
+
+export default Register;
