@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const Holding = require('./Models/stocks');
 require('dotenv').config();
 // const config = require('./config');
 // const authRoutes = require('./routes/auth');
@@ -162,6 +163,35 @@ app.get('/api/profile', auth, async (req, res) => {
             email: req.user.email
         }
     });
+});
+
+// Add a new holding (user must be authenticated)
+app.post('/api/holdings', auth, async (req, res) => {
+    try {
+        const { stockSymbol, stockPrice, stockQuantity } = req.body;
+        const holding = new Holding({
+            user: req.user._id,
+            stockSymbol,
+            stockPrice,
+            stockQuantity
+        });
+        await holding.save();
+        res.status(201).json({ message: 'Holding added', holding });
+    } catch (error) {
+        console.error('Add holding error:', error);
+        res.status(500).json({ message: 'Error adding holding' });
+    }
+});
+
+// Get all holdings for the logged-in user
+app.get('/api/holdings', auth, async (req, res) => {
+    try {
+        const holdings = await Holding.find({ user: req.user._id });
+        res.json({ holdings });
+    } catch (error) {
+        console.error('Get holdings error:', error);
+        res.status(500).json({ message: 'Error fetching holdings' });
+    }
 });
 
 // // app.use('/api/auth', authRoutes);
