@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import PortfolioGraph from './PortfolioGraph';
+import './PortfolioGraph.css';
+
 
 const Home = () => {
     const [holdings, setHoldings] = useState([]);
@@ -10,13 +13,14 @@ const Home = () => {
         const fetchHoldings = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const res = await axios.get('http://localhost:8080 /api/holdings', {
+                const res = await axios.get('http://localhost:8080/api/holdings', {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 });
                 setHoldings(res.data.holdings);
             } catch (err) {
+                console.error('Error fetching holdings:', err);
                 setError('Failed to fetch holdings');
             } finally {
                 setLoading(false);
@@ -55,6 +59,7 @@ const Home = () => {
                     </tbody>
                 </table>
             )}
+            <PortfolioGraph />
         </div>
     );
 };

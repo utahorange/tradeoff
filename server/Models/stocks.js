@@ -25,4 +25,5 @@ const holdingSchema = new mongoose.Schema({
 });
 
 const Holding = mongoose.model('Holding', holdingSchema);
+
 module.exports = Holding;

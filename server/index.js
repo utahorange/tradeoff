@@ -5,6 +5,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Holding = require('./Models/stocks');
+const PortfolioSnapshot = require('./Models/portfolioSnapshot');
 require('dotenv').config();
 // const config = require('./config');
 // const authRoutes = require('./routes/auth');
@@ -229,7 +230,7 @@ app.get('/api/profile', auth, async (req, res) => {
     });
 });
 
-// Add a new holding (user must be authenticated)
+// Update the holdings endpoint to create a snapshot when holdings change
 app.post('/api/holdings', auth, async (req, res) => {
     try {
         const { stockSymbol, stockPrice, stockQuantity } = req.body;
@@ -240,6 +241,24 @@ app.post('/api/holdings', auth, async (req, res) => {
             stockQuantity
         });
         await holding.save();
+
+        // Create a new portfolio snapshot
+        const holdings = await Holding.find({ user: req.user._id });
+        const totalValue = holdings.reduce((sum, h) => sum + (h.stockPrice * h.stockQuantity), 0);
+        
+        const snapshot = new PortfolioSnapshot({
+            user: req.user._id,
+            totalValue,
+            holdings: holdings.map(h => ({
+                symbol: h.stockSymbol,
+                quantity: h.stockQuantity,
+                price: h.stockPrice,
+                value: h.stockPrice * h.stockQuantity
+            })),
+            cashBalance: 10000 // This should come from user's account balance
+        });
+        await snapshot.save();
+
         res.status(201).json({ message: 'Holding added', holding });
     } catch (error) {
         console.error('Add holding error:', error);
@@ -255,6 +274,71 @@ app.get('/api/holdings', auth, async (req, res) => {
     } catch (error) {
         console.error('Get holdings error:', error);
         res.status(500).json({ message: 'Error fetching holdings' });
+    }
+});
+
+// Get portfolio history
+app.get('/api/portfolio/history', auth, async (req, res) => {
+    try {
+        const { timeframe } = req.query; // e.g., '1D', '1W', '1M', '1Y', 'ALL'
+        let startDate = new Date();
+
+        // Calculate start date based on timeframe
+        switch(timeframe) {
+            case '1D':
+                startDate.setDate(startDate.getDate() - 1);
+                break;
+            case '1W':
+                startDate.setDate(startDate.getDate() - 7);
+                break;
+            case '1M':
+                startDate.setMonth(startDate.getMonth() - 1);
+                break;
+            case '1Y':
+                startDate.setFullYear(startDate.getFullYear() - 1);
+                break;
+            case 'ALL':
+                startDate = new Date(0); // Beginning of time
+                break;
+            default:
+                startDate.setDate(startDate.getDate() - 7); // Default to 1 week
+        }
+
+        const snapshots = await PortfolioSnapshot.find({
+            user: req.user._id,
+            timestamp: { $gte: startDate }
+        }).sort({ timestamp: 1 });
+
+        res.json({ snapshots });
+    } catch (error) {
+        console.error('Get portfolio history error:', error);
+        res.status(500).json({ message: 'Error fetching portfolio history' });
+    }
+});
+
+// Get current portfolio value
+app.get('/api/portfolio/current', auth, async (req, res) => {
+    try {
+        const holdings = await Holding.find({ user: req.user._id });
+        const totalValue = holdings.reduce((sum, h) => sum + (h.stockPrice * h.stockQuantity), 0);
+        
+        // Get the latest snapshot for additional context
+        const latestSnapshot = await PortfolioSnapshot.findOne({ user: req.user._id })
+            .sort({ timestamp: -1 });
+
+        res.json({
+            totalValue,
+            holdings: holdings.map(h => ({
+                symbol: h.stockSymbol,
+                quantity: h.stockQuantity,
+                price: h.stockPrice,
+                value: h.stockPrice * h.stockQuantity
+            })),
+            previousValue: latestSnapshot ? latestSnapshot.totalValue : totalValue
+        });
+    } catch (error) {
+        console.error('Get current portfolio error:', error);
+        res.status(500).json({ message: 'Error fetching current portfolio' });
     }
 });
 
