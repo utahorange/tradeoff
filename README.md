@@ -2,14 +2,20 @@
 
 ## Installation and Deployment Locally
 
-Put Finnhub secret key in a file named `.env` in the `backend` folder. The file should look like `FINNHUB_API_KEY="your_key_here"`.
+Put Finnhub secret key in a file named `.env` in the `server` folder. The file should have `FINNHUB_API_KEY="your_key_here"`.
+
+Additionally, put your mongodb credentials and port in the `.env` file, it should look like:
+
+```
+PORT = 8080
+MONGODB_URI = ????
+```
 
 Make sure to also install requirements.
 
 ```
 cd server
-npm install
-npm start
+node index.js
 cd ../client
 npm install
 npm run dev
