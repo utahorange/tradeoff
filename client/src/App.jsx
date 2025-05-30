@@ -5,6 +5,7 @@ import Home from './components/home';
 import Register from './components/register';
 import Login from './components/login';
 import StockStats from './components/StockStats';
+import Competitions from './components/competitions';
 
 const App = () => {
     const [loggedInUser, setLoggedInUser] = useState(null);
@@ -27,11 +28,13 @@ const App = () => {
                             <div className="nav-links">
                                 <Link to="/">Home</Link>
                                 <Link to="/stats">Portfolio Stats</Link>
+                                <Link to="/competitions">Competitions</Link>
                             </div>
                         </nav>
                         <Routes>
                             <Route path="/" element={<Home setLoggedInUser={setLoggedInUser} />} />
                             <Route path="/stats" element={<StockStats />} />
+                            <Route path="/competitions" element={<Competitions />} />
                             <Route path="/*" element={<Navigate to="/" />} />
                         </Routes>
                     </>

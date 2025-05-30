@@ -67,11 +67,12 @@ const Home = ({setLoggedInUser}) => {
             </ul>
             <div className="sidebar-section">Pages</div>
             <ul>
-              <li>User Profile</li>
+              {/* <li>User Profile</li>
               <li>Account</li>
               <li>Corporate</li>
               <li>Blog</li>
-              <li>Social</li>
+              <li>Social</li> these are not used!*/}
+              <li onClick={() => navigate('/competitions')} style={{ cursor: 'pointer' }}>Competitions</li>
             </ul>
           </nav>
         </aside>
