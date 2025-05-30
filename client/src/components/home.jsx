@@ -8,6 +8,7 @@ const Home = () => {
     const [holdings, setHoldings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [balance, setBalance] = useState(0);
 
     useEffect(() => {
         const fetchHoldings = async () => {
@@ -19,6 +20,12 @@ const Home = () => {
                     }
                 });
                 setHoldings(res.data.holdings);
+                const balanceRes = await axios.get('http://localhost:8080/api/balance', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                setBalance(balanceRes.data.balance);
             } catch (err) {
                 console.error('Error fetching holdings:', err);
                 setError('Failed to fetch holdings');
@@ -33,6 +40,7 @@ const Home = () => {
         <div>
             <h1>Home</h1>
             <h2>Your Stock Holdings</h2>
+            <h2>Your Balance: {balance}</h2>
             {loading ? (
                 <p>Loading...</p>
             ) : error ? (

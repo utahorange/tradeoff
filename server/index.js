@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 const Holding = require('./Models/stocks');
 const PortfolioSnapshot = require('./Models/portfolioSnapshot');
 require('dotenv').config();
@@ -105,6 +106,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    balance: {
+        type: Number,
+        default: 1000,
+        required: true
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -132,7 +138,8 @@ app.post('/api/register', async (req, res) => {
         const user = new User({
             username,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            balance: 1000
         });
 
         await user.save();
@@ -233,14 +240,65 @@ app.get('/api/profile', auth, async (req, res) => {
 // Update the holdings endpoint to create a snapshot when holdings change
 app.post('/api/holdings', auth, async (req, res) => {
     try {
-        const { stockSymbol, stockPrice, stockQuantity } = req.body;
-        const holding = new Holding({
-            user: req.user._id,
-            stockSymbol,
-            stockPrice,
-            stockQuantity
-        });
-        await holding.save();
+        const { stockSymbol, stockPrice, stockQuantity, action } = req.body;
+        const user = await User.findById(req.user._id);
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const transactionAmount = stockPrice * stockQuantity;
+
+        if (action === 'buy') {
+            if (user.balance < transactionAmount) {
+                return res.status(400).json({ message: 'Insufficient funds' });
+            }
+            user.balance -= transactionAmount;
+            const holding = new Holding({
+                    user: req.user._id,
+                    stockSymbol,
+                    stockPrice,
+                    stockQuantity
+                });
+                await holding.save();
+        }
+        else if (action === 'sell') {
+            // Get all holdings for this stock symbol, sorted by purchase date (FIFO)
+            const holdings = await Holding.find({
+                user: req.user._id,
+                stockSymbol: stockSymbol
+            }).sort({ boughtAt: 1 });
+
+            let remainingToSell = stockQuantity;
+            let totalSaleAmount = 0;
+
+            for (const holding of holdings) {
+                if (remainingToSell <= 0) break;
+
+                const quantityToSell = Math.min(remainingToSell, holding.stockQuantity);
+                const saleAmount = quantityToSell * stockPrice;
+                totalSaleAmount += saleAmount;
+
+                if (quantityToSell === holding.stockQuantity) {
+                    // Delete the holding if we're selling all of it
+                    await Holding.deleteOne({ _id: holding._id });
+                } else {
+                    // Update the holding with remaining quantity
+                    holding.stockQuantity -= quantityToSell;
+                    await holding.save();
+                }
+
+                remainingToSell -= quantityToSell;
+            }
+
+            if (remainingToSell > 0) {
+                return res.status(400).json({ message: 'Insufficient stocks to sell' });
+            }
+
+            user.balance += totalSaleAmount;
+        }
+
+        await user.save();
 
         // Create a new portfolio snapshot
         const holdings = await Holding.find({ user: req.user._id });
@@ -255,14 +313,18 @@ app.post('/api/holdings', auth, async (req, res) => {
                 price: h.stockPrice,
                 value: h.stockPrice * h.stockQuantity
             })),
-            cashBalance: 10000 // This should come from user's account balance
+            cashBalance: user.balance
         });
         await snapshot.save();
 
-        res.status(201).json({ message: 'Holding added', holding });
+        res.status(201).json({ 
+            message: `${action === 'buy' ? 'Bought' : 'Sold'} stocks successfully`,
+            balance: user.balance,
+            totalValue
+        });
     } catch (error) {
         console.error('Add holding error:', error);
-        res.status(500).json({ message: 'Error adding holding' });
+        res.status(500).json({ message: 'Error processing transaction' });
     }
 });
 
@@ -280,10 +342,9 @@ app.get('/api/holdings', auth, async (req, res) => {
 // Get portfolio history
 app.get('/api/portfolio/history', auth, async (req, res) => {
     try {
-        const { timeframe } = req.query; // e.g., '1D', '1W', '1M', '1Y', 'ALL'
+        const { timeframe } = req.query; 
         let startDate = new Date();
 
-        // Calculate start date based on timeframe
         switch(timeframe) {
             case '1D':
                 startDate.setDate(startDate.getDate() - 1);
@@ -315,6 +376,11 @@ app.get('/api/portfolio/history', auth, async (req, res) => {
         res.status(500).json({ message: 'Error fetching portfolio history' });
     }
 });
+// Balance endpoint
+app.get('/api/balance', auth, async (req, res) => {
+    const user = await User.findById(req.user._id);
+    res.json({ balance: user.balance });
+});
 
 // Get current portfolio value
 app.get('/api/portfolio/current', auth, async (req, res) => {
@@ -339,6 +405,50 @@ app.get('/api/portfolio/current', auth, async (req, res) => {
     } catch (error) {
         console.error('Get current portfolio error:', error);
         res.status(500).json({ message: 'Error fetching current portfolio' });
+    }
+});
+
+// Get current portfolio value with real-time prices
+app.get('/api/portfolio/current-value', auth, async (req, res) => {
+    console.log('Getting current portfolio value');
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const holdings = await Holding.find({ user: req.user._id });
+        let totalValue = 0;
+        const holdingsWithCurrentPrice = [];
+
+        for (const holding of holdings) {
+            try {
+                const quote = await finnhubGet('quote', { symbol: holding.stockSymbol });
+                const currentPrice = quote.c;
+                const value = currentPrice * holding.stockQuantity;
+                totalValue += value;
+
+                holdingsWithCurrentPrice.push({
+                    symbol: holding.stockSymbol,
+                    quantity: holding.stockQuantity,
+                    purchasePrice: holding.stockPrice,
+                    currentPrice: currentPrice,
+                    value: value,
+                    change: ((currentPrice - holding.stockPrice) / holding.stockPrice) * 100
+                });
+            } catch (error) {
+                console.error(`Error fetching price for ${holding.stockSymbol}:`, error);
+            }
+        }
+
+        res.json({
+            totalValue: totalValue + user.balance,
+            holdings: holdingsWithCurrentPrice,
+            cashBalance: user.balance
+        });
+    } catch (error) {
+        console.error('Get current portfolio value error:', error);
+        res.status(500).json({ message: 'Error fetching current portfolio value' });
     }
 });
 

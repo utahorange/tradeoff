@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link, useNavigate } f
 import Home from './components/home';
 import Register from './components/register';
 import Login from './components/login';
+import StockStats from './components/StockStats';
 
 const App = () => {
     const [loggedInUser, setLoggedInUser] = useState(null);
@@ -28,9 +29,17 @@ const App = () => {
             <div className="App">
                 {loggedInUser ? (
                     <>
-                        <button onClick={handleLogout}>Logout</button>
+                        <nav className="main-nav">
+                            <div className="nav-links">
+                                <Link to="/">Home</Link>
+                                <Link to="/stats">Portfolio Stats</Link>
+                            </div>
+                            <button onClick={handleLogout} className="logout-btn">Logout</button>
+                        </nav>
                         <Routes>
-                            <Route path="/*" element={<Home />} />
+                            <Route path="/" element={<Home />} />
+                            <Route path="/stats" element={<StockStats />} />
+                            <Route path="/*" element={<Navigate to="/" />} />
                         </Routes>
                     </>
                 ) : (
