@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import './Auth.css';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -58,7 +59,9 @@ const Register = () => {
                 />
                 <button type="submit">Register</button>
             </form>
-            <p className="message">{message}</p>
+            <p className={`message ${message.includes('successful') ? 'success-message' : 'error-message'}`}>
+                {message}
+            </p>
         </div>
     );
 };

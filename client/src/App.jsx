@@ -5,6 +5,8 @@ import Home from './components/home';
 import Register from './components/register';
 import Login from './components/login';
 import StockStats from './components/StockStats';
+import UserProfile from './components/UserProfile';
+import { FaUserCircle } from 'react-icons/fa';
 
 const App = () => {
     const [loggedInUser, setLoggedInUser] = useState(null);
@@ -27,11 +29,15 @@ const App = () => {
                             <div className="nav-links">
                                 <Link to="/">Home</Link>
                                 <Link to="/stats">Portfolio Stats</Link>
+                                <Link to="/profile" className="profile-link">
+                                    <FaUserCircle size={24} />
+                                </Link>
                             </div>
                         </nav>
                         <Routes>
                             <Route path="/" element={<Home setLoggedInUser={setLoggedInUser} />} />
                             <Route path="/stats" element={<StockStats />} />
+                            <Route path="/profile" element={<UserProfile />} />
                             <Route path="/*" element={<Navigate to="/" />} />
                         </Routes>
                     </>

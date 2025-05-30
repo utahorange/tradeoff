@@ -50,7 +50,19 @@
 
 .nav-links {
   display: flex;
-  gap: 2rem;
+  gap: 20px;
+  align-items: center;
+}
+
+.profile-link {
+  color: #333;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.profile-link:hover {
+  color: #007bff;
 }
 
 .nav-links a {

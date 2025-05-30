@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import PortfolioGraph from './PortfolioGraph';
 import './Dashboard.css';
-import { IoMdSettings, IoMdSunny } from "react-icons/io";
+import { IoMdSunny } from "react-icons/io";
+import { FaUserCircle } from "react-icons/fa";
 import { CgLogOut } from "react-icons/cg";
 import { useNavigate } from 'react-router-dom';
 
@@ -85,10 +86,10 @@ const Home = ({setLoggedInUser}) => {
                 className="logout-icon" 
                 onClick={handleLogout}
               />
-              <IoMdSettings 
-                className="settings-icon" 
+              <FaUserCircle 
+                className="profile-icon" 
                 onClick={() => {
-                  console.log('Settings clicked');
+                  navigate('/profile');
                 }}
               />
             </div>

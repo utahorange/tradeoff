@@ -1,4 +1,4 @@
-// // server/index.js
+// server/index.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const Holding = require('./Models/stocks');
 const PortfolioSnapshot = require('./Models/portfolioSnapshot');
+const userRoutes = require('./routes/userRoutes');
 require('dotenv').config();
 // const config = require('./config');
 // const authRoutes = require('./routes/auth');
@@ -16,6 +17,9 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors());
+
+// Routes
+app.use('/api/user', userRoutes);
 
 
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
@@ -120,7 +124,7 @@ const userSchema = new mongoose.Schema({
     },
     balance: {
         type: Number,
-        default: 1000,
+        default: 10000,
         required: true
     },
     createdAt: {
@@ -151,7 +155,7 @@ app.post('/api/register', async (req, res) => {
             username,
             email,
             password: hashedPassword,
-            balance: 1000
+            balance: 10000
         });
 
         await user.save();
