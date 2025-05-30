@@ -40,8 +40,20 @@ async function finnhubGet(endpoint, params = {}) {
 app.get('/api/quote/:symbol', async (req, res) => {
   try {
     const data = await finnhubGet('quote', { symbol: req.params.symbol });
-    res.json(data);
-  } catch {
+    // Finnhub quote endpoint returns: c (current price), h (high), l (low), o (open), pc (previous close)
+    const quote = {
+      symbol: req.params.symbol,
+      currentPrice: data.c,
+      highPrice: data.h,
+      lowPrice: data.l,
+      openPrice: data.o,
+      previousClose: data.pc,
+      priceChange: data.c - data.pc,
+      percentChange: ((data.c - data.pc) / data.pc * 100).toFixed(2)
+    };
+    res.json(quote);
+  } catch (error) {
+    console.error('Quote error:', error);
     res.status(500).json({ error: 'Failed to fetch quote' });
   }
 });
@@ -380,6 +392,56 @@ app.get('/api/portfolio/history', auth, async (req, res) => {
 app.get('/api/balance', auth, async (req, res) => {
     const user = await User.findById(req.user._id);
     res.json({ balance: user.balance });
+});
+
+// Update prices for all holdings
+app.post('/api/holdings/update-prices', auth, async (req, res) => {
+    try {
+        const holdings = await Holding.find({ user: req.user._id });
+        const uniqueSymbols = [...new Set(holdings.map(h => h.stockSymbol))];
+        
+        // Fetch current prices for all symbols
+        const updates = await Promise.all(uniqueSymbols.map(async (symbol) => {
+            const data = await finnhubGet('quote', { symbol });
+            return {
+                symbol,
+                currentPrice: data.c
+            };
+        }));
+
+        // Update holdings with new prices
+        for (const update of updates) {
+            await Holding.updateMany(
+                { user: req.user._id, stockSymbol: update.symbol },
+                { $set: { stockPrice: update.currentPrice } }
+            );
+        }
+
+        // Create new portfolio snapshot
+        const updatedHoldings = await Holding.find({ user: req.user._id });
+        const totalValue = updatedHoldings.reduce((sum, h) => sum + (h.stockPrice * h.stockQuantity), 0);
+        
+        const snapshot = new PortfolioSnapshot({
+            user: req.user._id,
+            totalValue,
+            holdings: updatedHoldings.map(h => ({
+                symbol: h.stockSymbol,
+                quantity: h.stockQuantity,
+                price: h.stockPrice,
+                value: h.stockPrice * h.stockQuantity
+            })),
+            cashBalance: 10000 // TODO: Replace with actual user balance
+        });
+        await snapshot.save();
+
+        res.json({
+            message: 'Prices updated successfully',
+            holdings: updatedHoldings
+        });
+    } catch (error) {
+        console.error('Update prices error:', error);
+        res.status(500).json({ message: 'Error updating prices' });
+    }
 });
 
 // Get current portfolio value

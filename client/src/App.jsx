@@ -18,12 +18,6 @@ const App = () => {
         }
     }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
-        setLoggedInUser(null);
-    };
-
     return (
         <Router>
             <div className="App">
