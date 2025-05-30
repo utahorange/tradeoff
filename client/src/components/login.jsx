@@ -30,7 +30,8 @@ const Login = ({ setLoggedInUser }) => {
     };
 
     return (
-        <div className="auth-form">
+        <div className="auth-wrapper">
+            <div className="auth-form">
             <h2>Login</h2>
             <form onSubmit={onSubmit}>
                 <input
@@ -68,6 +69,7 @@ const Login = ({ setLoggedInUser }) => {
             <p className="create-account">
                 Don't have an account? <Link to="/register">Create Account</Link>
             </p>
+            </div>
         </div>
     );
 };

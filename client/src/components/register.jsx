@@ -9,7 +9,6 @@ const Register = () => {
         email: '',
         password: ''
     });
-    const [message, setMessage] = useState('');
     const navigate = useNavigate();
 
     const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,14 +17,9 @@ const Register = () => {
         e.preventDefault();
         try {
             await axios.post('http://localhost:8080/api/register', formData);
-            setMessage('Registration successful! Redirecting to login...');
-            setTimeout(() => navigate('/login'), 1500); // Redirect after 1.5s
+            navigate('/login'); // Redirect immediately after successful registration
         } catch (err) {
-            setMessage(
-                err.response && err.response.data && err.response.data.message
-                    ? err.response.data.message
-                    : 'Registration failed. Please try again.'
-            );
+            console.error('Registration error:', err);
         }
     };
 
@@ -59,9 +53,7 @@ const Register = () => {
                 />
                 <button type="submit">Register</button>
             </form>
-            <p className={`message ${message.includes('successful') ? 'success-message' : 'error-message'}`}>
-                {message}
-            </p>
+
         </div>
     );
 };

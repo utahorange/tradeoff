@@ -22,7 +22,7 @@ const UserProfile = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:8080/api/user/change-password', {
+            const response = await axios.post('http://localhost:8080/api/change-password', {
                 currentPassword,
                 newPassword
             }, {
