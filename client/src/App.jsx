@@ -7,6 +7,7 @@ import Login from './components/login';
 import StockStats from './components/StockStats';
 import UserProfile from './components/UserProfile';
 import { FaUserCircle } from 'react-icons/fa';
+import StockDetail from './components/StockDetail';
 
 const App = () => {
     const [loggedInUser, setLoggedInUser] = useState(null);
@@ -36,22 +37,18 @@ const App = () => {
                         </nav>
                         <Routes>
                             <Route path="/" element={<Home setLoggedInUser={setLoggedInUser} />} />
-                            <Route path="/stats" element={<StockStats />} />
                             <Route path="/profile" element={<UserProfile />} />
+                            <Route path="/stats" element={<StockStats setLoggedInUser={setLoggedInUser}/>} />
+                            <Route path="/stock/:symbol" element={<StockDetail />} />
                             <Route path="/*" element={<Navigate to="/" />} />
                         </Routes>
                     </>
                 ) : (
-                    <>
-                        <nav>
-                            <Link to="/login">Login</Link> | <Link to="/register">Register</Link>
-                        </nav>
-                        <Routes>
-                            <Route path="/login" element={<Login setLoggedInUser={setLoggedInUser} />} />
-                            <Route path="/register" element={<Register />} />
-                            <Route path="/*" element={<Navigate to="/login" />} />
-                        </Routes>
-                    </>
+                    <Routes>
+                        <Route path="/login" element={<Login setLoggedInUser={setLoggedInUser} />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/*" element={<Navigate to="/login" />} />
+                    </Routes>
                 )}
             </div>
         </Router>

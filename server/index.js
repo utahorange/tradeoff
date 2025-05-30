@@ -543,6 +543,62 @@ app.post('/api/change-password', auth, async (req, res) => {
     } catch (err) {
         console.error('Change password error:', err);
         res.status(500).json({ message: 'Server error' });
+    }});
+
+    // Stock search endpoint
+app.get('/api/stocks/search', auth, async (req, res) => {
+    try {
+        const { query } = req.query;
+        if (!query) {
+            return res.status(400).json({ error: 'Search query is required' });
+        }
+
+        const data = await finnhubGet('search', { q: query });
+        
+        // Format the response to include only necessary data
+        const results = data.result.map(stock => ({
+            symbol: stock.symbol,
+            description: stock.description,
+            type: stock.type,
+            primaryExchange: stock.primaryExchange
+        }));
+
+        res.json(results);
+    } catch (error) {
+        console.error('Stock search error:', error);
+        res.status(500).json({ error: 'Failed to search stocks' });
+    }
+});
+
+// Get detailed stock information
+app.get('/api/stocks/:symbol', auth, async (req, res) => {
+    try {
+        const { symbol } = req.params;
+        
+        // Get quote data
+        const quoteData = await finnhubGet('quote', { symbol });
+        
+        // Get company profile
+        const profileData = await finnhubGet('stock/profile2', { symbol });
+
+        // Combine the data
+        const stockData = {
+            symbol: symbol,
+            description: profileData.name,
+            price: quoteData.c,
+            change: ((quoteData.c - quoteData.pc) / quoteData.pc * 100),
+            marketCap: profileData.marketCapitalization,
+            volume: quoteData.t,
+            weekHigh52: profileData.weekHigh52,
+            weekLow52: profileData.weekLow52,
+            industry: profileData.finnhubIndustry,
+            exchange: profileData.exchange
+        };
+
+        res.json(stockData);
+    } catch (error) {
+        console.error('Stock detail error:', error);
+        res.status(500).json({ error: 'Failed to fetch stock details' });
     }
 });
 

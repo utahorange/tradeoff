@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import PortfolioGraph from './PortfolioGraph';
+import StockSearch from './StockSearch';
 import './Dashboard.css';
 import { IoMdSunny } from "react-icons/io";
 import { FaUserCircle } from "react-icons/fa";
@@ -15,11 +16,9 @@ const Home = ({setLoggedInUser}) => {
     const [balance, setBalance] = useState(0);
     
     const handleLogout = () => {
-      console.log('Logout clicked');
       localStorage.removeItem('token');
       localStorage.removeItem('username');
       setLoggedInUser(null);
-      navigate('/login');
     };
 
     useEffect(() => {
@@ -54,25 +53,11 @@ const Home = ({setLoggedInUser}) => {
         <aside className="dashboard-sidebar">
           <div className="sidebar-logo">TradeOff</div>
           <nav className="sidebar-nav">
-            <div className="sidebar-section">Favorites</div>
-            <ul>
-              <li>Overview</li>
-              <li>Projects</li>
-            </ul>
-            <div className="sidebar-section">Dashboards</div>
-            <ul>
-              <li className="active">Default</li>
-              <li>eCommerce</li>
-              <li>Projects</li>
-              <li>Online Courses</li>
-            </ul>
             <div className="sidebar-section">Pages</div>
             <ul>
-              <li>User Profile</li>
-              <li>Account</li>
-              <li>Corporate</li>
-              <li>Blog</li>
-              <li>Social</li>
+              <li onClick={() => navigate('/')}>Portfolio</li>
+              <li onClick={() => navigate('/stats')}>Stock Statistics</li>
+              <li>Competitions</li>
             </ul>
           </nav>
         </aside>
@@ -80,7 +65,9 @@ const Home = ({setLoggedInUser}) => {
         <main className="dashboard-main">
           {/* Top Bar */}
           <header className="dashboard-topbar">
-            <input className="dashboard-search" placeholder="Search..." />
+            <div className="search-container">
+              <StockSearch />
+            </div>
             <div className="dashboard-topbar-icons">
               <CgLogOut 
                 className="logout-icon" 
@@ -94,9 +81,8 @@ const Home = ({setLoggedInUser}) => {
               />
             </div>
           </header>
-          {/* Holdings Heading */}
           <h2 style={{marginBottom: 16}}>Your Stock Holdings</h2>
-          <h2>Your Balance: {balance}</h2>
+          <h2>Your Balance: ${balance.toFixed(2)}</h2>
           {/* Holdings Cards Scroll */}
           {loading ? (
             <p>Loading...</p>
@@ -112,7 +98,11 @@ const Home = ({setLoggedInUser}) => {
           ) : (
             <div className="dashboard-holdings-scroll">
               {holdings.map((h) => (
-                <div className="dashboard-holding-card" key={h._id}>
+                <div 
+                  className="dashboard-holding-card" 
+                  key={h._id}
+                  onClick={() => navigate(`/stock/${h.stockSymbol}`)}
+                >
                   <div className="holding-symbol">{h.stockSymbol}</div>
                   <div className="holding-quantity">Qty: {h.stockQuantity}</div>
                 </div>
