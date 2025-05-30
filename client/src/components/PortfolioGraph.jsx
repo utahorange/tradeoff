@@ -1,3 +1,4 @@
+// ... existing imports ...
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
@@ -11,6 +12,7 @@ import {
     Tooltip,
     Legend
 } from 'chart.js';
+import './PortfolioGraph.css';
 
 // Register ChartJS components
 ChartJS.register(
@@ -23,7 +25,7 @@ ChartJS.register(
     Legend
 );
 
-const PortfolioGraph = () => {
+const PortfolioGraph = ({ hasHoldings }) => {
     const [timeframe, setTimeframe] = useState('1W');
     const [portfolioData, setPortfolioData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -31,6 +33,10 @@ const PortfolioGraph = () => {
 
     useEffect(() => {
         const fetchPortfolioHistory = async () => {
+            if (!hasHoldings) {
+                setLoading(false);
+                return;
+            }
             try {
                 const token = localStorage.getItem('token');
                 const response = await axios.get(`http://localhost:8080/api/portfolio/history?timeframe=${timeframe}`, {
@@ -48,19 +54,36 @@ const PortfolioGraph = () => {
         };
 
         fetchPortfolioHistory();
-    }, [timeframe]);
+    }, [timeframe, hasHoldings]);
+
+    if (!hasHoldings) {
+        return (
+            <div className="portfolio-graph card">
+                <div className="empty-state-message">
+                    <h3>No Portfolio Data</h3>
+                    <p>Start investing to see your portfolio performance over time!</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (loading) return <div className="portfolio-graph card">Loading...</div>;
+    if (error) return <div className="portfolio-graph card" style={{ color: 'red' }}>{error}</div>;
 
     const chartData = {
-        labels: portfolioData.map(snapshot => 
+        labels: portfolioData.map(snapshot =>
             new Date(snapshot.timestamp).toLocaleDateString()
         ),
         datasets: [
             {
                 label: 'Portfolio Value',
                 data: portfolioData.map(snapshot => snapshot.totalValue),
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1,
-                fill: false
+                borderColor: 'rgba(66,153,225,1)', // blue
+                backgroundColor: 'rgba(66,153,225,0.10)', // subtle fill
+                pointBackgroundColor: 'rgba(66,153,225,1)',
+                pointBorderColor: '#23262f',
+                tension: 0.4, // smooth curve
+                fill: true,
             }
         ]
     };
@@ -69,40 +92,65 @@ const PortfolioGraph = () => {
         responsive: true,
         plugins: {
             legend: {
+                display: true,
                 position: 'top',
+                align: 'end',
+                labels: {
+                    color: '#f1f1f1',
+                    font: { size: 14, family: 'Inter, sans-serif' }
+                }
             },
             title: {
-                display: true,
-                text: 'Portfolio Value Over Time'
+                display: false
+            },
+            tooltip: {
+                backgroundColor: '#23262f',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: '#4299e1',
+                borderWidth: 1,
             }
         },
         scales: {
-            y: {
-                beginAtZero: false,
+            x: {
+                grid: {
+                    color: '#353945',
+                },
                 ticks: {
+                    color: '#b5b5b5',
+                    font: { family: 'Inter, sans-serif' }
+                }
+            },
+            y: {
+                grid: {
+                    color: '#353945',
+                },
+                ticks: {
+                    color: '#b5b5b5',
                     callback: function(value) {
                         return '$' + value.toLocaleString();
-                    }
+                    },
+                    font: { family: 'Inter, sans-serif' }
                 }
             }
         }
     };
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div style={{ color: 'red' }}>{error}</div>;
-
     return (
-        <div className="portfolio-graph">
-            <div className="timeframe-selector">
-                {['1D', '1W', '1M', '1Y', 'ALL'].map((tf) => (
-                    <button
-                        key={tf}
-                        onClick={() => setTimeframe(tf)}
-                        className={timeframe === tf ? 'active' : ''}
-                    >
-                        {tf}
-                    </button>
-                ))}
+        <div className="portfolio-graph card">
+            <div className="portfolio-graph-header">
+                <h3>Portfolio Value Over Time</h3>
+                <div className="timeframe-selector">
+                    {['1D', '1W', '1M', '1Y', 'ALL'].map((tf) => (
+                        <button
+                            key={tf}
+                            onClick={() => setTimeframe(tf)}
+                            className={timeframe === tf ? 'active' : ''}
+                        >
+                            {tf}
+                        </button>
+                    ))}
+                </div>
             </div>
             <div className="chart-container">
                 <Line data={chartData} options={options} />
@@ -111,4 +159,4 @@ const PortfolioGraph = () => {
     );
 };
 
-export default PortfolioGraph; 
+export default PortfolioGraph;
