@@ -4,7 +4,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #f9fafb; /* matches Tailwind's bg-gray-50 */
+    background-color: #1a1d23; /* darker background instead of #f9fafb */
     display: flex;
     align-items: center;
     justify-content: center;

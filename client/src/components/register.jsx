@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './Auth.css';
 
 const Register = () => {
@@ -24,36 +24,40 @@ const Register = () => {
     };
 
     return (
-        <div className="auth-form">
-            <h2>Register</h2>
-            <form onSubmit={onSubmit}>
-                <input
-                    type="text"
-                    placeholder="Username"
-                    name="username"
-                    value={formData.username}
-                    onChange={onChange}
-                    required
-                />
-                <input
-                    type="email"
-                    placeholder="Email"
-                    name="email"
-                    value={formData.email}
-                    onChange={onChange}
-                    required
-                />
-                <input
-                    type="password"
-                    placeholder="Password"
-                    name="password"
-                    value={formData.password}
-                    onChange={onChange}
-                    required
-                />
-                <button type="submit">Register</button>
-            </form>
-
+        <div className="auth-wrapper">
+            <div className="auth-form">
+                <h2>Register</h2>
+                <form onSubmit={onSubmit}>
+                    <input
+                        type="text"
+                        placeholder="Username"
+                        name="username"
+                        value={formData.username}
+                        onChange={onChange}
+                        required
+                    />
+                    <input
+                        type="email"
+                        placeholder="Email"
+                        name="email"
+                        value={formData.email}
+                        onChange={onChange}
+                        required
+                    />
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        name="password"
+                        value={formData.password}
+                        onChange={onChange}
+                        required
+                    />
+                    <button type="submit">Register</button>
+                </form>
+                <p className="create-account">
+                    Already have an account? <Link to="/login">Sign In</Link>
+                </p>
+            </div>
         </div>
     );
 };
