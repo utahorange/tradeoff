@@ -63,21 +63,24 @@
   align-items: center;
   padding: 24px 0 16px 0;
 }
-.dashboard-search {
-  background: #23262f;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  color: #fff;
-  width: 220px;
-  font-size: 1rem;
+.search-container {
+  flex: 1;
+  max-width: 600px;
+  margin-right: 24px;
+}
+.dashboard-topbar-icons {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 .dashboard-topbar-icons svg {
-  margin-left: 18px;
   font-size: 1.2rem;
-  /* display: flex; */
-  gap: 18px;
   cursor: pointer;
+  color: #fff;
+  transition: color 0.2s;
+}
+.dashboard-topbar-icons svg:hover {
+  color: #4299e1;
 }
 .dashboard-stats {
   display: flex;

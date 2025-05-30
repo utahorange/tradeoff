@@ -5,6 +5,7 @@ import Home from './components/home';
 import Register from './components/register';
 import Login from './components/login';
 import StockStats from './components/StockStats';
+import StockDetail from './components/StockDetail';
 
 const App = () => {
     const [loggedInUser, setLoggedInUser] = useState(null);
@@ -32,6 +33,7 @@ const App = () => {
                         <Routes>
                             <Route path="/" element={<Home setLoggedInUser={setLoggedInUser} />} />
                             <Route path="/stats" element={<StockStats />} />
+                            <Route path="/stock/:symbol" element={<StockDetail />} />
                             <Route path="/*" element={<Navigate to="/" />} />
                         </Routes>
                     </>

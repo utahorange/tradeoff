@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import PortfolioGraph from './PortfolioGraph';
+import StockSearch from './StockSearch';
 import './Dashboard.css';
 import { IoMdSettings, IoMdSunny } from "react-icons/io";
 import { CgLogOut } from "react-icons/cg";
@@ -79,7 +80,9 @@ const Home = ({setLoggedInUser}) => {
         <main className="dashboard-main">
           {/* Top Bar */}
           <header className="dashboard-topbar">
-            <input className="dashboard-search" placeholder="Search..." />
+            <div className="search-container">
+              <StockSearch />
+            </div>
             <div className="dashboard-topbar-icons">
               <CgLogOut 
                 className="logout-icon" 
@@ -95,7 +98,7 @@ const Home = ({setLoggedInUser}) => {
           </header>
           {/* Holdings Heading */}
           <h2 style={{marginBottom: 16}}>Your Stock Holdings</h2>
-          <h2>Your Balance: {balance}</h2>
+          <h2>Your Balance: ${balance.toFixed(2)}</h2>
           {/* Holdings Cards Scroll */}
           {loading ? (
             <p>Loading...</p>
@@ -111,7 +114,11 @@ const Home = ({setLoggedInUser}) => {
           ) : (
             <div className="dashboard-holdings-scroll">
               {holdings.map((h) => (
-                <div className="dashboard-holding-card" key={h._id}>
+                <div 
+                  className="dashboard-holding-card" 
+                  key={h._id}
+                  onClick={() => navigate(`/stock/${h.stockSymbol}`)}
+                >
                   <div className="holding-symbol">{h.stockSymbol}</div>
                   <div className="holding-quantity">Qty: {h.stockQuantity}</div>
                 </div>
