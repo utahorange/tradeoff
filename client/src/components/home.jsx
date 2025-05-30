@@ -14,11 +14,9 @@ const Home = ({setLoggedInUser}) => {
     const [balance, setBalance] = useState(0);
     
     const handleLogout = () => {
-      console.log('Logout clicked');
       localStorage.removeItem('token');
       localStorage.removeItem('username');
       setLoggedInUser(null);
-      navigate('/login');
     };
 
     useEffect(() => {
@@ -53,25 +51,11 @@ const Home = ({setLoggedInUser}) => {
         <aside className="dashboard-sidebar">
           <div className="sidebar-logo">TradeOff</div>
           <nav className="sidebar-nav">
-            <div className="sidebar-section">Favorites</div>
-            <ul>
-              <li>Overview</li>
-              <li>Projects</li>
-            </ul>
-            <div className="sidebar-section">Dashboards</div>
-            <ul>
-              <li className="active">Default</li>
-              <li>eCommerce</li>
-              <li>Projects</li>
-              <li>Online Courses</li>
-            </ul>
             <div className="sidebar-section">Pages</div>
             <ul>
-              <li>User Profile</li>
-              <li>Account</li>
-              <li>Corporate</li>
-              <li>Blog</li>
-              <li>Social</li>
+              <li onClick={() => navigate('/')}>Portfolio</li>
+              <li onClick={() => navigate('/stats')}>Stock Statistics</li>
+              <li>Competitions</li>
             </ul>
           </nav>
         </aside>
@@ -93,7 +77,6 @@ const Home = ({setLoggedInUser}) => {
               />
             </div>
           </header>
-          {/* Holdings Heading */}
           <h2 style={{marginBottom: 16}}>Your Stock Holdings</h2>
           <h2>Your Balance: {balance}</h2>
           {/* Holdings Cards Scroll */}

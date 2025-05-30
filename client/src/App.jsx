@@ -31,21 +31,16 @@ const App = () => {
                         </nav>
                         <Routes>
                             <Route path="/" element={<Home setLoggedInUser={setLoggedInUser} />} />
-                            <Route path="/stats" element={<StockStats />} />
+                            <Route path="/stats" element={<StockStats setLoggedInUser={setLoggedInUser}/>} />
                             <Route path="/*" element={<Navigate to="/" />} />
                         </Routes>
                     </>
                 ) : (
-                    <>
-                        <nav>
-                            <Link to="/login">Login</Link> | <Link to="/register">Register</Link>
-                        </nav>
-                        <Routes>
-                            <Route path="/login" element={<Login setLoggedInUser={setLoggedInUser} />} />
-                            <Route path="/register" element={<Register />} />
-                            <Route path="/*" element={<Navigate to="/login" />} />
-                        </Routes>
-                    </>
+                    <Routes>
+                        <Route path="/login" element={<Login setLoggedInUser={setLoggedInUser} />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/*" element={<Navigate to="/login" />} />
+                    </Routes>
                 )}
             </div>
         </Router>
