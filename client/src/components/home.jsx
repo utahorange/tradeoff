@@ -11,6 +11,7 @@ const Home = ({setLoggedInUser}) => {
     const [holdings, setHoldings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [balance, setBalance] = useState(0);
     
     const handleLogout = () => {
       console.log('Logout clicked');

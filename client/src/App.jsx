@@ -28,10 +28,9 @@ const App = () => {
                                 <Link to="/">Home</Link>
                                 <Link to="/stats">Portfolio Stats</Link>
                             </div>
-                            <button onClick={handleLogout} className="logout-btn">Logout</button>
                         </nav>
                         <Routes>
-                            <Route path="/" element={<Home />} />
+                            <Route path="/" element={<Home setLoggedInUser={setLoggedInUser} />} />
                             <Route path="/stats" element={<StockStats />} />
                             <Route path="/*" element={<Navigate to="/" />} />
                         </Routes>
