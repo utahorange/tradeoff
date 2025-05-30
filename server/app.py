@@ -22,6 +22,7 @@ users = {
         'balance': 10000.75,
         'email': 'john@example.com',
         'joinDate': '2025-01-15',
+        'password': 'current_password_hash'  # In real app, this would be hashed
     }
 }
 
@@ -77,5 +78,29 @@ def get_stock_data(symbol):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/change-password', methods=['POST'])
+def change_password():
+    """Change user password"""
+    try:
+        data = request.get_json()
+        current_password = data.get('currentPassword')
+        new_password = data.get('newPassword')
+        
+        if not current_password or not new_password:
+            return jsonify({'message': 'Current password and new password are required'}), 400
+        
+        # In a real app, you would:
+        # 1. Extract user ID from JWT token
+        # 2. Verify current password against hashed password in database
+        # 3. Hash new password and update in database
+        
+        # For now, we'll just simulate success
+        # TODO: Add proper authentication and password hashing
+        
+        return jsonify({'message': 'Password updated successfully'}), 200
+        
+    except Exception as e:
+        return jsonify({'message': 'Error updating password'}), 500
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=8080)
