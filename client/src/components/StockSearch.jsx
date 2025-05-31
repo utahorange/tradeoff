@@ -236,10 +236,7 @@ const StockSearch = () => {
                                         {formatPrice(stock.quote.c)}
                                     </div>
                                     <div className={`stock-change ${stock.quote.d >= 0 ? 'positive' : 'negative'}`}>
-                                        <span className="mr-1">
-                                            {stock.quote.d >= 0 ? '↑' : '↓'}
-                                        </span>
-                                        {formatChange(stock.quote.d)} ({formatPercentChange(stock.quote.dp)}%)
+                                        {stock.quote.d >= 0 ? '↑' : '↓'} {formatChange(stock.quote.d)} ({formatPercentChange(stock.quote.dp)}%)
                                     </div>
                                 </div>
                             ) : (

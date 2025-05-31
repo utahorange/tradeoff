@@ -34,6 +34,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -79,4 +80,29 @@
 .logout-btn:hover {
   background-color: #e9ecef;
   border-color: #ced4da;
+}
+
+.app {
+  min-height: 100vh;
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+.main-content {
+  margin-left: 220px;
+  padding-top: 100px;
+  min-height: calc(100vh - 100px);
+}
+
+@media (max-width: 1200px) {
+  .main-content {
+    margin-left: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding-top: 90px;
+  }
 }
