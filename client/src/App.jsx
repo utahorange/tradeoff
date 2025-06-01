@@ -5,7 +5,7 @@ import Home from './components/home';
 import Register from './components/register';
 import Login from './components/login';
 import StockStats from './components/StockStats';
-import Competitions from './components/competitions';
+import Competitions from './components/competitions.jsx';
 
 const App = () => {
     const [loggedInUser, setLoggedInUser] = useState(null);

@@ -1,188 +1,376 @@
-import React, { useState, useEffect } from 'react';
-import { FaSearch, FaInfoCircle, FaUser, FaCalendarAlt, FaUsers, FaDollarSign, FaTrophy, FaChartLine } from 'react-icons/fa';
-import './Competitions.css';
+import React, { useState, useEffect } from "react";
+import {
+  FaSearch,
+  FaInfoCircle,
+  FaUser,
+  FaCalendarAlt,
+  FaUsers,
+  FaDollarSign,
+  FaTrophy,
+  FaChartLine,
+} from "react-icons/fa";
+import axios from "axios";
+import "./Competitions.css";
 
 const Competitions = () => {
+  console.log("Competitions component mounting");
   // State for active tab
-  const [activeTab, setActiveTab] = useState('leaderboard');
-  
-  // Mock data for leaderboard
-  const [leaderboardData, setLeaderboardData] = useState([
-    { rank: 1, username: 'PaperMaster', accountValue: '$352,542,491.00', todayChange: '+$60,644,904.00 (+20.78%)', overallChange: '+$252,542,491.00 (+251.54%)', isCurrentUser: false },
-    { rank: 2, username: 'StockWhisperer', accountValue: '$302,942,320.00', todayChange: '+$45,441,348.00 (+17.65%)', overallChange: '+$202,942,320.00 (+202.94%)', isCurrentUser: false },
-    { rank: 3, username: 'eBullish', accountValue: '$274,924,919.00', todayChange: '+$40,386,784.00 (+17.21%)', overallChange: '+$174,924,919.00 (+174.92%)', isCurrentUser: true },
-    { rank: 4, username: 'TradeGenius', accountValue: '$245,103,142.00', todayChange: '+$36,765,471.30 (+17.65%)', overallChange: '+$145,103,142.00 (+145.10%)', isCurrentUser: false },
-    { rank: 5, username: 'MarketMaster', accountValue: '$215,502,401.00', todayChange: '+$32,325,360.15 (+17.65%)', overallChange: '+$115,502,401.00 (+115.50%)', isCurrentUser: false }
-  ]);
-  
-  // Mock data for my games
-  const [myGames, setMyGames] = useState([
-    { id: 1, name: 'Beginners', host: 'FinWhiz', details: 'Learn to trade with no pressure', startDate: 'June 11, 2023', endDate: 'No End', players: 1057, startingCash: '$10,000.00', joined: true },
-    { id: 2, name: 'Investopedia Game 2024 Q2', host: 'Investopedia', details: 'Official quarterly trading competition', startDate: 'March 29, 2023', endDate: 'No End', players: 843, startingCash: '$100,000.00', joined: true },
-    { id: 3, name: 'Investopedia Game 2024 No End', host: 'Investopedia', details: 'Practice your skills indefinitely', startDate: 'February 16, 2023', endDate: 'No End', players: 219, startingCash: '$100,000.00', joined: true },
-    { id: 4, name: 'Investopedia Game 2023 No End', host: 'Investopedia', details: 'Last year\'s ongoing competition', startDate: 'December 12, 2022', endDate: 'No End', players: 185, startingCash: '$100,000.00', joined: true },
-    { id: 5, name: 'Investopedia Game 2022 No End', host: 'GoldRush', details: 'Archived competition for reference', startDate: 'December 20, 2021', endDate: 'No End', players: 132, startingCash: '$100,000.00', joined: true }
-  ]);
-  
-  // Mock data for available games to join
-  const [availableGames, setAvailableGames] = useState([
-    { id: 6, name: 'FINM24-SEC3', host: 'FinMaster', details: 'Advanced trading strategies', startDate: 'February 21, 2023', endDate: 'June 21, 2023', players: 3, startingCash: '$1,000,000.00', joined: false, locked: true },
-    { id: 7, name: 'Crypto Masters 2024', host: 'CryptoKing', details: 'Cryptocurrency trading competition', startDate: 'April 15, 2024', endDate: 'July 15, 2024', players: 42, startingCash: '$500,000.00', joined: false, locked: false },
-    { id: 8, name: 'Stock Market Champions', host: 'WallStreetPro', details: 'Compete with the best traders', startDate: 'May 1, 2024', endDate: 'August 1, 2024', players: 78, startingCash: '$250,000.00', joined: false, locked: false },
-    { id: 9, name: 'Day Trader Challenge', host: 'TradingGuru', details: 'Short-term trading competition', startDate: 'June 1, 2024', endDate: 'June 30, 2024', players: 35, startingCash: '$100,000.00', joined: false, locked: false }
-  ]);
-  
+  const [activeTab, setActiveTab] = useState("leaderboard");
+
+  // State for data
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [myGames, setMyGames] = useState([]);
+  const [availableGames, setAvailableGames] = useState([]);
+
+  // State for loading and errors
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   // State for search term
-  const [searchTerm, setSearchTerm] = useState('');
-  
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // State for selected competition (for leaderboard)
+  const [selectedCompetitionId, setSelectedCompetitionId] = useState(null);
+
   // State for create game form
   const [createGameForm, setCreateGameForm] = useState({
-    name: '',
-    description: '',
-    startDate: '',
-    endDate: '',
+    name: "",
+    description: "",
+    startDate: "",
+    endDate: "",
     initialCash: 100000,
-    visibility: 'public'
+    visibility: "public",
   });
-  
+
+  // Fetch data when component mounts or active tab changes
+  useEffect(() => {
+    console.log("Competitions useEffect running");
+    const fetchData = async () => {
+      console.log("fetchData starting");
+      setLoading(true);
+      setError(null);
+
+      try {
+        const token = localStorage.getItem("token");
+        console.log("Token exists:", !!token);
+        if (!token) {
+          setError("Authentication required. Please log in.");
+          setLoading(false);
+          return;
+        }
+
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+
+        // Fetch data based on active tab
+        if (activeTab === "leaderboard") {
+          // If we have a selected competition, fetch its leaderboard
+          if (selectedCompetitionId) {
+            const response = await axios.get(
+              `/api/competitions/${selectedCompetitionId}/leaderboard`,
+              config
+            );
+            console.log("Leaderboard response:", response.data);
+            // Ensure leaderboardData is always an array
+            setLeaderboardData(
+              Array.isArray(response.data) ? response.data : []
+            );
+          } else {
+            // If no competition is selected, fetch my games first to get a competition ID
+            const myGamesResponse = await axios.get(
+              "/api/competitions/my-games",
+              config
+            );
+            console.log("My games response:", myGamesResponse.data);
+            if (myGamesResponse.data && myGamesResponse.data.length > 0) {
+              const firstCompetition = myGamesResponse.data[0];
+              setSelectedCompetitionId(firstCompetition.id);
+              const leaderboardResponse = await axios.get(
+                `/api/competitions/${firstCompetition.id}/leaderboard`,
+                config
+              );
+              console.log(
+                "Leaderboard response for first competition:",
+                leaderboardResponse.data
+              );
+              // Ensure leaderboardData is always an array
+              setLeaderboardData(
+                Array.isArray(leaderboardResponse.data)
+                  ? leaderboardResponse.data
+                  : []
+              );
+            } else {
+              // If user hasn't joined any competitions, set empty leaderboard
+              setLeaderboardData([]);
+            }
+          }
+        } else if (activeTab === "myGames") {
+          const response = await axios.get(
+            "/api/competitions/my-games",
+            config
+          );
+          console.log("My games response:", response.data);
+          setMyGames(Array.isArray(response.data) ? response.data : []);
+        } else if (activeTab === "joinGame") {
+          const response = await axios.get(
+            "/api/competitions/available",
+            config
+          );
+          console.log("Available games response:", response.data);
+          setAvailableGames(Array.isArray(response.data) ? response.data : []);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to fetch data. Please try again.");
+        // Set empty arrays for all data states on error
+        setLeaderboardData([]);
+        setMyGames([]);
+        setAvailableGames([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [activeTab, selectedCompetitionId]);
+
   // Filter available games based on search term
-  const filteredGames = availableGames.filter(game => 
-    game.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    game.host.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    game.details.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredGames = availableGames.filter(
+    (game) =>
+      game.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      game.host.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      game.details.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
+
   // Handle form input changes
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setCreateGameForm(prev => ({
+    setCreateGameForm((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
-  
+
   // Handle form submission
-  const handleCreateGame = (e) => {
+  const handleCreateGame = async (e) => {
     e.preventDefault();
-    // Here you would typically send this data to your backend
-    console.log('Creating new game:', createGameForm);
-    alert('Game created successfully!');
-    // Reset form
-    setCreateGameForm({
-      name: '',
-      description: '',
-      startDate: '',
-      endDate: '',
-      initialCash: 100000,
-      visibility: 'public'
-    });
-    // Switch to My Games tab
-    setActiveTab('myGames');
-  };
-  
-  // Handle joining a game
-  const handleJoinGame = (gameId) => {
-    // Here you would typically send a request to join the game
-    console.log('Joining game with ID:', gameId);
-    
-    // Update the available games list
-    setAvailableGames(prev => 
-      prev.map(game => 
-        game.id === gameId ? { ...game, joined: true } : game
-      )
-    );
-    
-    // Add the game to my games
-    const gameToAdd = availableGames.find(game => game.id === gameId);
-    if (gameToAdd) {
-      setMyGames(prev => [...prev, { ...gameToAdd, joined: true }]);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Authentication required. Please log in.");
+        setLoading(false);
+        return;
+      }
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      };
+
+      // Use relative URL instead of hardcoded localhost
+      const response = await axios.post(
+        "/api/competitions",
+        createGameForm,
+        config
+      );
+
+      // Reset form
+      setCreateGameForm({
+        name: "",
+        description: "",
+        startDate: "",
+        endDate: "",
+        initialCash: 100000,
+        visibility: "public",
+      });
+
+      // Switch to My Games tab to see the new competition
+      setActiveTab("myGames");
+
+      // Show success message
+      alert("Competition created successfully!");
+    } catch (err) {
+      console.error("Error creating competition:", err);
+      if (err.response?.status === 401) {
+        setError("Your session has expired. Please log in again.");
+        // Optionally redirect to login page or clear token
+        localStorage.removeItem("token");
+      } else {
+        setError(
+          err.response?.data?.message ||
+            "Failed to create competition. Please try again."
+        );
+      }
+    } finally {
+      setLoading(false);
     }
-    
-    alert('Successfully joined the game!');
   };
-  
+
+  // Handle joining a game
+  const handleJoinGame = async (gameId) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Authentication required. Please log in.");
+        setLoading(false);
+        return;
+      }
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      // Send request to join competition using relative URL
+      await axios.post(`/api/competitions/${gameId}/join`, {}, config);
+
+      // Refresh available games list using relative URL
+      const availableResponse = await axios.get(
+        "/api/competitions/available",
+        config
+      );
+      setAvailableGames(availableResponse.data);
+
+      // Refresh my games list using relative URL
+      const myGamesResponse = await axios.get(
+        "/api/competitions/my-games",
+        config
+      );
+      setMyGames(myGamesResponse.data);
+
+      // Show success message
+      alert("Successfully joined the competition!");
+    } catch (err) {
+      console.error("Error joining competition:", err);
+      setError(
+        err.response?.data?.message ||
+          "Failed to join competition. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="competitions-container">
+      {loading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner"></div>
+          <p>Loading...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={() => setError(null)}>Dismiss</button>
+        </div>
+      )}
+
       <div className="competitions-content">
         <div className="competitions-card">
           {/* Header with navigation tabs */}
           <div className="competitions-header">
             <h1>Competitions</h1>
             <div className="competitions-tabs">
-              <div 
-                className={`competitions-tab ${activeTab === 'leaderboard' ? 'active' : ''}`}
-                onClick={() => setActiveTab('leaderboard')}
+              <div
+                className={`competitions-tab ${
+                  activeTab === "leaderboard" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("leaderboard")}
               >
                 Leaderboard
               </div>
-              <div 
-                className={`competitions-tab ${activeTab === 'myGames' ? 'active' : ''}`}
-                onClick={() => setActiveTab('myGames')}
+              <div
+                className={`competitions-tab ${
+                  activeTab === "myGames" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("myGames")}
               >
                 My Games
               </div>
-              <div 
-                className={`competitions-tab ${activeTab === 'joinGame' ? 'active' : ''}`}
-                onClick={() => setActiveTab('joinGame')}
+              <div
+                className={`competitions-tab ${
+                  activeTab === "joinGame" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("joinGame")}
               >
                 Join Game
               </div>
-              <div 
-                className={`competitions-tab ${activeTab === 'createGame' ? 'active' : ''}`}
-                onClick={() => setActiveTab('createGame')}
+              <div
+                className={`competitions-tab ${
+                  activeTab === "createGame" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("createGame")}
               >
                 Create Game
               </div>
             </div>
           </div>
-          
+
           {/* Leaderboard Tab */}
-          {activeTab === 'leaderboard' && (
+          {activeTab === "leaderboard" && (
             <div className="competitions-body">
               <div className="overflow-x-auto">
-                <table className="leaderboard-table">
-                  <thead>
-                    <tr>
-                      <th>Rank</th>
-                      <th>User</th>
-                      <th>Account Value</th>
-                      <th>Today's Change</th>
-                      <th>Overall Change</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leaderboardData.map((user) => (
-                      <tr key={user.rank} className={user.isCurrentUser ? 'current-user' : ''}>
-                        <td>
-                          {user.rank}
-                        </td>
-                        <td>
-                          {user.username} {user.isCurrentUser && <span>(You)</span>}
-                        </td>
-                        <td>
-                          {user.accountValue}
-                        </td>
-                        <td className="positive">
-                          {user.todayChange}
-                        </td>
-                        <td className="positive">
-                          {user.overallChange}
-                        </td>
+                {Array.isArray(leaderboardData) &&
+                leaderboardData.length > 0 ? (
+                  <table className="leaderboard-table">
+                    <thead>
+                      <tr>
+                        <th>Rank</th>
+                        <th>User</th>
+                        <th>Account Value</th>
+                        <th>Today's Change</th>
+                        <th>Overall Change</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {leaderboardData.map((user) => (
+                        <tr
+                          key={user.rank}
+                          className={user.isCurrentUser ? "current-user" : ""}
+                        >
+                          <td>{user.rank}</td>
+                          <td>
+                            {user.username}{" "}
+                            {user.isCurrentUser && <span>(You)</span>}
+                          </td>
+                          <td>{user.accountValue}</td>
+                          <td className="positive">{user.todayChange}</td>
+                          <td className="positive">{user.overallChange}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="empty-state">
+                    <p>
+                      No leaderboard data available. Join a competition to get
+                      started!
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="mt-4 text-right">
-                <button className="button-secondary">
-                  View All Records →
-                </button>
+                <button className="button-secondary">View All Records →</button>
               </div>
             </div>
           )}
-          
+
           {/* My Games Tab */}
-          {activeTab === 'myGames' && (
+          {activeTab === "myGames" && (
             <div className="competitions-body">
               <div className="my-games-list">
                 {myGames.map((game) => (
@@ -193,26 +381,40 @@ const Competitions = () => {
                         <p className="game-card-host">by {game.host}</p>
                         <p className="mt-2">{game.details}</p>
                       </div>
-                      <button className="button-secondary">
-                        Details
-                      </button>
+                      <button className="button-secondary">Details</button>
                     </div>
                     <div className="game-card-details">
                       <div className="game-detail">
-                        <span className="game-detail-label"><FaCalendarAlt className="mr-1" /> Start Date</span>
-                        <span className="game-detail-value">{game.startDate}</span>
+                        <span className="game-detail-label">
+                          <FaCalendarAlt className="mr-1" /> Start Date
+                        </span>
+                        <span className="game-detail-value">
+                          {game.startDate}
+                        </span>
                       </div>
                       <div className="game-detail">
-                        <span className="game-detail-label"><FaCalendarAlt className="mr-1" /> End Date</span>
-                        <span className="game-detail-value">{game.endDate}</span>
+                        <span className="game-detail-label">
+                          <FaCalendarAlt className="mr-1" /> End Date
+                        </span>
+                        <span className="game-detail-value">
+                          {game.endDate}
+                        </span>
                       </div>
                       <div className="game-detail">
-                        <span className="game-detail-label"><FaUsers className="mr-1" /> # of Players</span>
-                        <span className="game-detail-value">{game.players.toLocaleString()}</span>
+                        <span className="game-detail-label">
+                          <FaUsers className="mr-1" /> # of Players
+                        </span>
+                        <span className="game-detail-value">
+                          {game.players.toLocaleString()}
+                        </span>
                       </div>
                       <div className="game-detail">
-                        <span className="game-detail-label"><FaDollarSign className="mr-1" /> Starting Cash</span>
-                        <span className="game-detail-value">{game.startingCash}</span>
+                        <span className="game-detail-label">
+                          <FaDollarSign className="mr-1" /> Starting Cash
+                        </span>
+                        <span className="game-detail-value">
+                          {game.startingCash}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -220,9 +422,9 @@ const Competitions = () => {
               </div>
             </div>
           )}
-          
+
           {/* Join Game Tab */}
-          {activeTab === 'joinGame' && (
+          {activeTab === "joinGame" && (
             <div className="competitions-body">
               <div className="search-bar">
                 <input
@@ -235,7 +437,7 @@ const Competitions = () => {
                   <FaSearch />
                 </div>
               </div>
-              
+
               <div className="overflow-x-auto">
                 <table className="leaderboard-table">
                   <thead>
@@ -260,27 +462,17 @@ const Competitions = () => {
                           <div className="game-card-host">by {game.host}</div>
                         </td>
                         <td>
-                          <button className="button-secondary">
-                            Details
-                          </button>
+                          <button className="button-secondary">Details</button>
                         </td>
-                        <td>
-                          {game.startDate}
-                        </td>
-                        <td>
-                          {game.endDate}
-                        </td>
-                        <td>
-                          {game.players}
-                        </td>
-                        <td>
-                          {game.startingCash}
-                        </td>
+                        <td>{game.startDate}</td>
+                        <td>{game.endDate}</td>
+                        <td>{game.players}</td>
+                        <td>{game.startingCash}</td>
                         <td className="text-right">
                           {game.joined ? (
                             <span className="joined">Joined</span>
                           ) : game.locked ? (
-                            <button 
+                            <button
                               className="join-button"
                               disabled
                               title="This game is locked"
@@ -288,7 +480,7 @@ const Competitions = () => {
                               Join
                             </button>
                           ) : (
-                            <button 
+                            <button
                               onClick={() => handleJoinGame(game.id)}
                               className="join-button"
                             >
@@ -301,7 +493,7 @@ const Competitions = () => {
                   </tbody>
                 </table>
               </div>
-              
+
               {filteredGames.length === 0 && (
                 <div className="empty-state">
                   <div className="empty-state-message">
@@ -312,14 +504,16 @@ const Competitions = () => {
               )}
             </div>
           )}
-          
+
           {/* Create Game Tab */}
-          {activeTab === 'createGame' && (
+          {activeTab === "createGame" && (
             <div className="competitions-body">
               <form onSubmit={handleCreateGame}>
                 <div className="form-grid">
                   <div className="form-field">
-                    <label htmlFor="name" className="form-label">Game Name</label>
+                    <label htmlFor="name" className="form-label">
+                      Game Name
+                    </label>
                     <input
                       type="text"
                       id="name"
@@ -330,9 +524,11 @@ const Competitions = () => {
                       className="form-input"
                     />
                   </div>
-                  
+
                   <div className="form-field">
-                    <label htmlFor="visibility" className="form-label">Visibility</label>
+                    <label htmlFor="visibility" className="form-label">
+                      Visibility
+                    </label>
                     <select
                       id="visibility"
                       name="visibility"
@@ -344,9 +540,11 @@ const Competitions = () => {
                       <option value="private">Private</option>
                     </select>
                   </div>
-                  
+
                   <div className="form-field full-width">
-                    <label htmlFor="description" className="form-label">Description</label>
+                    <label htmlFor="description" className="form-label">
+                      Description
+                    </label>
                     <textarea
                       id="description"
                       name="description"
@@ -356,9 +554,11 @@ const Competitions = () => {
                       className="form-textarea"
                     ></textarea>
                   </div>
-                  
+
                   <div className="form-field">
-                    <label htmlFor="startDate" className="form-label">Start Date</label>
+                    <label htmlFor="startDate" className="form-label">
+                      Start Date
+                    </label>
                     <input
                       type="date"
                       id="startDate"
@@ -369,9 +569,11 @@ const Competitions = () => {
                       className="form-input"
                     />
                   </div>
-                  
+
                   <div className="form-field">
-                    <label htmlFor="endDate" className="form-label">End Date (leave empty for no end date)</label>
+                    <label htmlFor="endDate" className="form-label">
+                      End Date (leave empty for no end date)
+                    </label>
                     <input
                       type="date"
                       id="endDate"
@@ -381,9 +583,11 @@ const Competitions = () => {
                       className="form-input"
                     />
                   </div>
-                  
+
                   <div className="form-field">
-                    <label htmlFor="initialCash" className="form-label">Initial Cash Amount ($)</label>
+                    <label htmlFor="initialCash" className="form-label">
+                      Initial Cash Amount ($)
+                    </label>
                     <input
                       type="number"
                       id="initialCash"
@@ -396,19 +600,16 @@ const Competitions = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="form-actions">
                   <button
                     type="button"
-                    onClick={() => setActiveTab('myGames')}
+                    onClick={() => setActiveTab("myGames")}
                     className="button-secondary"
                   >
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    className="button-primary"
-                  >
+                  <button type="submit" className="button-primary">
                     Create Competition
                   </button>
                 </div>
