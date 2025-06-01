@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './StockStats.css';
-import { IoMdSettings } from "react-icons/io";
 import { CgLogOut } from "react-icons/cg";
+import { FaUserCircle } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import StockSearch from './StockSearch';
 
@@ -85,7 +85,12 @@ const StockStats = ({ setLoggedInUser }) => {
                     </div>
                     <div className="dashboard-topbar-icons">
                         <CgLogOut className="logout-icon" onClick={handleLogout} />
-                        <IoMdSettings className="settings-icon" />
+                        <FaUserCircle 
+                            className="profile-icon" 
+                            onClick={() => {
+                                navigate('/profile');
+                            }}
+                        />
                     </div>
                 </header>
                 <div className="portfolio-summary">

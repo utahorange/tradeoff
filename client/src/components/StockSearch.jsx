@@ -201,7 +201,7 @@ const StockSearch = () => {
                     onChange={(e) => setGrowthFilter(e.target.value)}
                     className="filter-select"
                 >
-                    <option value="any">Any Growth</option>
+                    <option value="any">Any Change</option>
                     <option value="growing">Growing</option>
                     <option value="shrinking">Shrinking</option>
                 </select>
