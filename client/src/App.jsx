@@ -6,6 +6,7 @@ import Register from './components/register';
 import Login from './components/login';
 import StockStats from './components/StockStats';
 import StockDetail from './components/StockDetail';
+import Friends from './components/Friends';
 
 const App = () => {
     const [loggedInUser, setLoggedInUser] = useState(null);
@@ -28,12 +29,14 @@ const App = () => {
                             <div className="nav-links">
                                 <Link to="/">Home</Link>
                                 <Link to="/stats">Portfolio Stats</Link>
+                                <Link to="/friends">Friends</Link>
                             </div>
                         </nav>
                         <Routes>
                             <Route path="/" element={<Home setLoggedInUser={setLoggedInUser} />} />
                             <Route path="/stats" element={<StockStats setLoggedInUser={setLoggedInUser}/>} />
                             <Route path="/stock/:symbol" element={<StockDetail />} />
+                            <Route path="/friends" element={<Friends />} />
                             <Route path="/*" element={<Navigate to="/" />} />
                         </Routes>
                     </>

@@ -42,6 +42,12 @@ export default function Navbar() {
                 >
                   Competitions
                 </Link>
+                <Link
+                  href="/friends"
+                  className={`text-white px-3 py-2 rounded-md text-sm font-medium ${isActive('/friends')}`}
+                >
+                  Friends
+                </Link>
               </div>
             </div>
           </div>
@@ -120,6 +126,12 @@ export default function Navbar() {
               className={`text-white block px-3 py-2 rounded-md text-base font-medium ${isActive('/competitions')}`}
             >
               Competitions
+            </Link>
+            <Link
+              href="/friends"
+              className={`text-white block px-3 py-2 rounded-md text-base font-medium ${isActive('/friends')}`}
+            >
+              Friends
             </Link>
             <Link
               href="/profile"
