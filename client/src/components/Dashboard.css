@@ -329,4 +329,30 @@
 
 .empty-state-message p {
     color: #aaa;
+}
+
+.dashboard-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  margin-top: 64px;
+  padding: 0 16px;
+}
+
+.balance-section {
+  flex: 1;
+  text-align: left;
+}
+
+.holdings-section {
+  flex: 1;
+  text-align: right;
+}
+
+.balance-section h2,
+.holdings-section h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #fff;
 } 

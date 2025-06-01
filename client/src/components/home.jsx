@@ -81,8 +81,14 @@ const Home = ({setLoggedInUser}) => {
               />
             </div>
           </header>
-          <h2 style={{marginBottom: 16}}>Your Stock Holdings</h2>
-          <h2>Your Balance: ${balance.toFixed(2)}</h2>
+          <div className="dashboard-summary">
+            <div className="balance-section">
+              <h2>My Stock Holdings</h2>
+            </div>
+            <div className="holdings-section">
+              <h2>Balance: ${balance.toFixed(2)}</h2>
+            </div>
+          </div>
           {/* Holdings Cards Scroll */}
           {loading ? (
             <p>Loading...</p>
