@@ -8,6 +8,7 @@ import StockStats from './components/StockStats';
 import UserProfile from './components/UserProfile';
 import { FaUserCircle } from 'react-icons/fa';
 import StockDetail from './components/StockDetail';
+import Competitions from './components/competitions.jsx';
 
 const App = () => {
     const [loggedInUser, setLoggedInUser] = useState(null);
@@ -33,6 +34,7 @@ const App = () => {
                                 <Link to="/profile" className="profile-link">
                                     <FaUserCircle size={24} />
                                 </Link>
+                                <Link to="/competitions">Competitions</Link>
                             </div>
                         </nav>
                         <Routes>
@@ -40,6 +42,8 @@ const App = () => {
                             <Route path="/profile" element={<UserProfile />} />
                             <Route path="/stats" element={<StockStats setLoggedInUser={setLoggedInUser}/>} />
                             <Route path="/stock/:symbol" element={<StockDetail />} />
+                            <Route path="/stats" element={<StockStats />} />
+                            <Route path="/competitions" element={<Competitions />} />
                             <Route path="/*" element={<Navigate to="/" />} />
                         </Routes>
                     </>

@@ -57,7 +57,7 @@ const Home = ({setLoggedInUser}) => {
             <ul>
               <li onClick={() => navigate('/')}>Portfolio</li>
               <li onClick={() => navigate('/stats')}>Stock Statistics</li>
-              <li>Competitions</li>
+              <li onClick={() => navigate('/competitions')} style={{ cursor: 'pointer' }}>Competitions</li>
             </ul>
           </nav>
         </aside>
