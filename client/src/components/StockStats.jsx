@@ -4,6 +4,7 @@ import './StockStats.css';
 import { IoMdSettings } from "react-icons/io";
 import { CgLogOut } from "react-icons/cg";
 import { useNavigate } from 'react-router-dom';
+import StockSearch from './StockSearch';
 
 const StockStats = ({ setLoggedInUser }) => {
     const [portfolioData, setPortfolioData] = useState(null);
@@ -43,6 +44,12 @@ const StockStats = ({ setLoggedInUser }) => {
         return () => clearInterval(interval);
     }, []);
 
+    const displayData = portfolioData || {
+        totalValue: 0,
+        cashBalance: 0,
+        holdings: []
+    };
+
     if (loading) {
         return (
             <div className="loading-container">
@@ -56,15 +63,6 @@ const StockStats = ({ setLoggedInUser }) => {
 
     if (error) {
         return <div className="error-message">{error}</div>;
-    }
-
-    if (!portfolioData || !portfolioData.holdings.length) {
-        return (
-            <div className="empty-portfolio">
-                <h2>Your Portfolio is Empty</h2>
-                <p>Start investing by buying some stocks!</p>
-            </div>
-        );
     }
 
     return (
@@ -82,7 +80,9 @@ const StockStats = ({ setLoggedInUser }) => {
             </aside>
             <main className="dashboard-main">
                 <header className="dashboard-topbar">
-                    <input className="dashboard-search" placeholder="Search..." />
+                    <div className="search-container">
+                        <StockSearch />
+                    </div>
                     <div className="dashboard-topbar-icons">
                         <CgLogOut className="logout-icon" onClick={handleLogout} />
                         <IoMdSettings className="settings-icon" />
@@ -93,11 +93,11 @@ const StockStats = ({ setLoggedInUser }) => {
                     <div className="summary-cards">
                         <div className="summary-card">
                             <h3>Total Value</h3>
-                            <p className="value">${portfolioData.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <p className="value">${displayData.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                         </div>
                         <div className="summary-card">
                             <h3>Cash Balance</h3>
-                            <p className="value">${portfolioData.cashBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <p className="value">${displayData.cashBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                         </div>
                     </div>
                 </div>
@@ -116,21 +116,29 @@ const StockStats = ({ setLoggedInUser }) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {portfolioData.holdings.map((holding) => (
-                                <tr key={holding.symbol}>
-                                    <td className="symbol">{holding.symbol}</td>
-                                    <td>{holding.quantity}</td>
-                                    <td>${holding.purchasePrice.toFixed(2)}</td>
-                                    <td>${holding.currentPrice.toFixed(2)}</td>
-                                    <td>${holding.value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                    <td className={holding.change >= 0 ? 'positive' : 'negative'}>
-                                        ${((holding.currentPrice - holding.purchasePrice) * holding.quantity).toFixed(2)}
-                                    </td>
-                                    <td className={holding.change >= 0 ? 'positive' : 'negative'}>
-                                        {holding.change >= 0 ? '+' : ''}{holding.change.toFixed(2)}%
+                            {displayData.holdings.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="empty-portfolio-message">
+                                        Your portfolio is empty. Start investing by buying some stocks!
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                displayData.holdings.map((holding) => (
+                                    <tr key={holding.symbol}>
+                                        <td className="symbol">{holding.symbol}</td>
+                                        <td>{holding.quantity}</td>
+                                        <td>${holding.purchasePrice.toFixed(2)}</td>
+                                        <td>${holding.currentPrice.toFixed(2)}</td>
+                                        <td>${holding.value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        <td className={holding.change >= 0 ? 'positive' : 'negative'}>
+                                            ${((holding.currentPrice - holding.purchasePrice) * holding.quantity).toFixed(2)}
+                                        </td>
+                                        <td className={holding.change >= 0 ? 'positive' : 'negative'}>
+                                            {holding.change >= 0 ? '+' : ''}{holding.change.toFixed(2)}%
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -139,20 +147,20 @@ const StockStats = ({ setLoggedInUser }) => {
                     <div className="stats-grid">
                         <div className="stat-card">
                             <h3>Total Return</h3>
-                            <p className={portfolioData.totalValue - portfolioData.cashBalance >= 0 ? 'positive' : 'negative'}>
-                                ${(portfolioData.totalValue - portfolioData.cashBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <p className={displayData.totalValue - displayData.cashBalance >= 0 ? 'positive' : 'negative'}>
+                                ${(displayData.totalValue - displayData.cashBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
                         </div>
                         <div className="stat-card">
                             <h3>Total Return %</h3>
-                            <p className={portfolioData.totalValue - portfolioData.cashBalance >= 0 ? 'positive' : 'negative'}>
-                                {((portfolioData.totalValue - portfolioData.cashBalance) / portfolioData.cashBalance * 100).toFixed(2)}%
+                            <p className={displayData.totalValue - displayData.cashBalance >= 0 ? 'positive' : 'negative'}>
+                                {((displayData.totalValue - displayData.cashBalance) / displayData.cashBalance * 100).toFixed(2)}%
                             </p>
                         </div>
                         <div className="stat-card">
                             <h3>Number of Positions</h3>
-                            <p className={portfolioData.holdings.length > 0 ? 'positive' : 'negative'}>
-                                {portfolioData.holdings.length}
+                            <p className={displayData.holdings.length > 0 ? 'positive' : 'negative'}>
+                                {displayData.holdings.length}
                             </p>
                         </div>
                     </div>
