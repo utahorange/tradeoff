@@ -7,58 +7,22 @@ import Navbar from "./Navbar";
 import "./Home.css";
 import { FaUserCircle } from "react-icons/fa";
 import { CgLogOut } from "react-icons/cg";
-import { useNavigate, Routes, Route } from "react-router-dom";
-import CompetitionDetails from "./CompetitionDetails";
-import Competitions from "./competitions";
+import { useNavigate } from 'react-router-dom';
 
-const Dashboard = ({ setLoggedInUser }) => {
-  const navigate = useNavigate();
-  const [holdings, setHoldings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [balance, setBalance] = useState(0);
-  const [friendRequests, setFriendRequests] = useState([]);
-  const [friends, setFriends] = useState([]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-    setLoggedInUser(null);
-    navigate("/login");
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const [holdingsRes, balanceRes, friendRequestsRes, friendsRes] =
-          await Promise.all([
-            axios.get("http://localhost:8080/api/holdings", {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            axios.get("http://localhost:8080/api/balance", {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            axios.get("http://localhost:8080/api/friends/requests", {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            axios.get("http://localhost:8080/api/friends", {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-          ]);
-        setHoldings(holdingsRes.data.holdings);
-        setBalance(balanceRes.data.balance);
-        setFriendRequests(friendRequestsRes.data.requests || []);
-        setFriends(friendsRes.data.friends || []);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to fetch data");
-      } finally {
-        setLoading(false);
-      }
+const Home = ({setLoggedInUser}) => {
+    const navigate = useNavigate();
+    const [holdings, setHoldings] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [balance, setBalance] = useState(0);
+    const [friendRequests, setFriendRequests] = useState([]);
+    const [friends, setFriends] = useState([]);
+    
+    const handleLogout = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      setLoggedInUser(null);
     };
-    fetchData();
-  }, []);
 
     return (
       <div className="dashboard-root">
@@ -153,23 +117,6 @@ const Dashboard = ({ setLoggedInUser }) => {
       </aside>
       </div>
     );
-};
-
-const Home = ({ setLoggedInUser }) => {
-  return (
-    <Routes>
-      <Route
-        path="/"
-        element={<Dashboard setLoggedInUser={setLoggedInUser} />}
-      />
-      <Route path="/competitions" element={<Competitions />} />
-      <Route
-        path="/competitions/:competitionId"
-        element={<CompetitionDetails />}
-      />
-      {/* Add other routes here, e.g. login, register, etc. */}
-    </Routes>
-  );
 };
 
 export default Home;

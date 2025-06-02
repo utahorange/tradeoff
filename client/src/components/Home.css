@@ -63,7 +63,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24px 0 0 0;
+    padding: 24px 0 16px 0;
   }
   
   .dashboard-search {
@@ -377,6 +377,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
+    margin-top: 64px;
     padding: 0 16px;
   }
   
