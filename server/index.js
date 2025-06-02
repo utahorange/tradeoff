@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const Holding = require('./Models/stocks');
 const PortfolioSnapshot = require('./Models/portfolioSnapshot');
+const FriendRequest = require('./Models/friendRequest');
 const userRoutes = require('./routes/userRoutes');
 const Competition = require('./Models/competition');
 const CompetitionParticipant = require('./Models/competitionParticipant');
@@ -130,6 +131,10 @@ const userSchema = new mongoose.Schema({
         default: 10000,
         required: true
     },
+    friends: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     createdAt: {
         type: Date,
         default: Date.now
@@ -536,6 +541,131 @@ app.get('/api/profile', auth, async (req, res) => {
             email: req.user.email
         }
     });
+});
+
+// Search users endpoint
+app.get('/api/users/search', auth, async (req, res) => {
+    try {
+        const searchTerm = req.query.username || '';
+        if (searchTerm.length < 2) {
+            return res.status(400).json({ message: 'Search term must be at least 2 characters long' });
+        }
+
+        const users = await User.find({
+            username: { $regex: searchTerm, $options: 'i' },
+            _id: { $ne: req.user._id } // Exclude the current user
+        }).select('username _id');
+
+        res.json({ users });
+    } catch (error) {
+        console.error('Search users error:', error);
+        res.status(500).json({ message: 'Error searching users' });
+    }
+});
+
+// Send friend request
+app.post('/api/friends/request', auth, async (req, res) => {
+    try {
+        const { receiverId } = req.body;
+        
+        // Check if receiver exists
+        const receiver = await User.findById(receiverId);
+        if (!receiver) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Check if request already exists
+        const existingRequest = await FriendRequest.findOne({
+            $or: [
+                { sender: req.user._id, receiver: receiverId },
+                { sender: receiverId, receiver: req.user._id }
+            ]
+        });
+
+        if (existingRequest) {
+            return res.status(400).json({ message: 'Friend request already exists' });
+        }
+
+        // Check if they're already friends
+        if (req.user.friends.includes(receiverId)) {
+            return res.status(400).json({ message: 'Users are already friends' });
+        }
+
+        // Create new friend request
+        const friendRequest = new FriendRequest({
+            sender: req.user._id,
+            receiver: receiverId
+        });
+
+        await friendRequest.save();
+        res.status(201).json({ message: 'Friend request sent successfully' });
+    } catch (error) {
+        console.error('Send friend request error:', error);
+        res.status(500).json({ message: 'Error sending friend request' });
+    }
+});
+
+// Get pending friend requests
+app.get('/api/friends/requests', auth, async (req, res) => {
+    try {
+        const requests = await FriendRequest.find({
+            receiver: req.user._id,
+            status: 'pending'
+        }).populate('sender', 'username');
+
+        res.json({ requests });
+    } catch (error) {
+        console.error('Get friend requests error:', error);
+        res.status(500).json({ message: 'Error fetching friend requests' });
+    }
+});
+
+// Respond to friend request
+app.post('/api/friends/respond', auth, async (req, res) => {
+    try {
+        const { requestId, accept } = req.body;
+        
+        const request = await FriendRequest.findOne({
+            _id: requestId,
+            receiver: req.user._id,
+            status: 'pending'
+        });
+
+        if (!request) {
+            return res.status(404).json({ message: 'Friend request not found' });
+        }
+
+        if (accept) {
+            // Add each user to the other's friends list
+            await User.findByIdAndUpdate(request.sender, {
+                $addToSet: { friends: request.receiver }
+            });
+            await User.findByIdAndUpdate(request.receiver, {
+                $addToSet: { friends: request.sender }
+            });
+            request.status = 'accepted';
+        } else {
+            request.status = 'rejected';
+        }
+
+        await request.save();
+        res.json({ message: `Friend request ${accept ? 'accepted' : 'rejected'}` });
+    } catch (error) {
+        console.error('Respond to friend request error:', error);
+        res.status(500).json({ message: 'Error responding to friend request' });
+    }
+});
+
+// Get friend list
+app.get('/api/friends', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id)
+            .populate('friends', 'username');
+        res.json({ friends: user.friends });
+    } catch (error) {
+        console.error('Get friends error:', error);
+        res.status(500).json({ message: 'Error fetching friends list' });
+    }
 });
 
 // Update the holdings endpoint to create a snapshot when holdings change
