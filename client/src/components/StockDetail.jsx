@@ -5,6 +5,7 @@ import './StockDetail.css';
 import StockSearch from './StockSearch';
 import { CgLogOut } from "react-icons/cg";
 import { FaUserCircle } from "react-icons/fa";
+import Navbar from './Navbar';
 
 const StockDetail = () => {
     const { symbol } = useParams();
@@ -75,18 +76,7 @@ const StockDetail = () => {
     if (loading) {
         return (
             <div className="dashboard-root">
-                <aside className="dashboard-sidebar">
-                    <div className="sidebar-logo">TradeOff</div>
-                    <nav className="sidebar-nav">
-                        <div className="sidebar-section">Pages</div>
-                        <ul>
-                            <li onClick={() => navigate('/')}>Portfolio</li>
-                            <li onClick={() => navigate('/stats')}>Stock Statistics</li>
-                            <li onClick={() => navigate('/competitions')}>Competitions</li>
-                            <li onClick={() => navigate('/friends')}>Friends</li>
-                        </ul>
-                    </nav>
-                </aside>
+                <Navbar />
                 <main className="dashboard-main">
                     <header className="dashboard-topbar">
                         <div className="search-container">
@@ -99,26 +89,6 @@ const StockDetail = () => {
                     </header>
                     <div className="loading">Loading stock data...</div>
                 </main>
-                <aside className="dashboard-rightbar">
-                    <div className="rightbar-section">
-                        <h4>Notifications</h4>
-                        <ul>
-                            <li>You have a new friend request</li>
-                            <li>New user registered</li>
-                            <li>Random Notification</li>
-                        </ul>
-                    </div>
-                    <div className="rightbar-section">
-                        <h4>Friends</h4>
-                        <ul>
-                            <li>Spandaddy</li>
-                            <li>JZ Washington</li>
-                            <li>teshy</li>
-                            <li>taiGoat</li>
-                            <li>deSchlong</li>
-                        </ul>
-                    </div>
-                </aside>
             </div>
         );
     }
@@ -126,18 +96,7 @@ const StockDetail = () => {
     if (error) {
         return (
             <div className="dashboard-root">
-                <aside className="dashboard-sidebar">
-                    <div className="sidebar-logo">TradeOff</div>
-                    <nav className="sidebar-nav">
-                        <div className="sidebar-section">Pages</div>
-                        <ul>
-                            <li onClick={() => navigate('/')}>Portfolio</li>
-                            <li onClick={() => navigate('/stats')}>Stock Statistics</li>
-                            <li onClick={() => navigate('/competitions')}>Competitions</li>
-                            <li onClick={() => navigate('/friends')}>Friends</li>
-                        </ul>
-                    </nav>
-                </aside>
+                <Navbar />
                 <main className="dashboard-main">
                     <header className="dashboard-topbar">
                         <div className="search-container">
@@ -150,26 +109,6 @@ const StockDetail = () => {
                     </header>
                     <div className="error">{error}</div>
                 </main>
-                <aside className="dashboard-rightbar">
-                    <div className="rightbar-section">
-                        <h4>Notifications</h4>
-                        <ul>
-                            <li>You have a new friend request</li>
-                            <li>New user registered</li>
-                            <li>Random Notification</li>
-                        </ul>
-                    </div>
-                    <div className="rightbar-section">
-                        <h4>Friends</h4>
-                        <ul>
-                            <li>Spandaddy</li>
-                            <li>JZ Washington</li>
-                            <li>teshy</li>
-                            <li>taiGoat</li>
-                            <li>deSchlong</li>
-                        </ul>
-                    </div>
-                </aside>
             </div>
         );
     }
@@ -177,18 +116,7 @@ const StockDetail = () => {
     if (!stockData) {
         return (
             <div className="dashboard-root">
-                <aside className="dashboard-sidebar">
-                    <div className="sidebar-logo">TradeOff</div>
-                    <nav className="sidebar-nav">
-                        <div className="sidebar-section">Pages</div>
-                        <ul>
-                            <li onClick={() => navigate('/')}>Portfolio</li>
-                            <li onClick={() => navigate('/stats')}>Stock Statistics</li>
-                            <li onClick={() => navigate('/competitions')}>Competitions</li>
-                            <li onClick={() => navigate('/friends')}>Friends</li>
-                        </ul>
-                    </nav>
-                </aside>
+                <Navbar />
                 <main className="dashboard-main">
                     <header className="dashboard-topbar">
                         <div className="search-container">
@@ -201,26 +129,6 @@ const StockDetail = () => {
                     </header>
                     <div className="error">No data available for this stock</div>
                 </main>
-                <aside className="dashboard-rightbar">
-                    <div className="rightbar-section">
-                        <h4>Notifications</h4>
-                        <ul>
-                            <li>You have a new friend request</li>
-                            <li>New user registered</li>
-                            <li>Random Notification</li>
-                        </ul>
-                    </div>
-                    <div className="rightbar-section">
-                        <h4>Friends</h4>
-                        <ul>
-                            <li>Spandaddy</li>
-                            <li>JZ Washington</li>
-                            <li>teshy</li>
-                            <li>taiGoat</li>
-                            <li>deSchlong</li>
-                        </ul>
-                    </div>
-                </aside>
             </div>
         );
     }
@@ -229,18 +137,7 @@ const StockDetail = () => {
 
     return (
         <div className="dashboard-root">
-            <aside className="dashboard-sidebar">
-                <div className="sidebar-logo">TradeOff</div>
-                <nav className="sidebar-nav">
-                    <div className="sidebar-section">Pages</div>
-                    <ul>
-                        <li onClick={() => navigate('/')}>Portfolio</li>
-                        <li onClick={() => navigate('/stats')}>Stock Statistics</li>
-                        <li onClick={() => navigate('/competitions')}>Competitions</li>
-                        <li onClick={() => navigate('/friends')}>Friends</li>
-                    </ul>
-                </nav>
-            </aside>
+            <Navbar />
             <main className="dashboard-main">
                 <header className="dashboard-topbar">
                     <div className="search-container">
@@ -303,26 +200,6 @@ const StockDetail = () => {
                     </div>
                 </div>
             </main>
-            <aside className="dashboard-rightbar">
-                <div className="rightbar-section">
-                    <h4>Notifications</h4>
-                    <ul>
-                        <li>You have a new friend request</li>
-                        <li>New user registered</li>
-                        <li>Random Notification</li>
-                    </ul>
-                </div>
-                <div className="rightbar-section">
-                    <h4>Friends</h4>
-                    <ul>
-                        <li>Spandaddy</li>
-                        <li>JZ Washington</li>
-                        <li>teshy</li>
-                        <li>taiGoat</li>
-                        <li>deSchlong</li>
-                    </ul>
-                </div>
-            </aside>
         </div>
     );
 };
