@@ -42,9 +42,10 @@
 }
 
 .price-label {
-    color: #aaa;
     font-size: 0.9rem;
-    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #fff;
+    background: none;
 }
 
 .price-value {
