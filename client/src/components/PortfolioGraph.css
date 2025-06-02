@@ -1,76 +1,129 @@
 .portfolio-graph {
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    border-radius: 0;
-    box-shadow: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .portfolio-graph.card {
-    background: #18191a;
-    border-radius: 16px;
-    box-shadow: 0 2px 12px 0 rgba(0,0,0,0.12);
-    padding: 24px 24px 16px 24px;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    min-height: 340px;
+  background: #18191a;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.12);
+  padding: 24px 24px 16px 24px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 340px;
 }
 
 .portfolio-graph-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .portfolio-graph-header h3 {
-    color: #f1f1f1;
-    font-size: 1.15rem;
-    font-weight: 600;
-    margin: 0;
+  color: #f1f1f1;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0;
 }
 
-.timeframe-selector {
-    display: flex;
-    gap: 8px;
-}
-
-.timeframe-selector button {
-    padding: 6px 18px;
-    border: none;
-    border-radius: 20px;
-    background: #23262f;
-    color: #f1f1f1;
-    cursor: pointer;
-    font-size: 0.98rem;
-    transition: background 0.2s, color 0.2s;
-}
-
-.timeframe-selector button.active {
-    background: #4299e1;
-    color: #fff;
-}
-
-.timeframe-selector button:hover {
-    background: #353945;
+.portfolio-graph-container {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  position: relative;
 }
 
 .chart-container {
-    flex: 1 1 0;
-    width: 100%;
-    min-height: 220px;
-    position: relative;
-    display: flex;
-    align-items: stretch;
-    justify-content: stretch;
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  position: relative;
+}
+
+.timeframe-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  justify-content: flex-end;
+}
+
+.timeframe-selector button {
+  padding: 6px 12px;
+  background: #2a2e39;
+  color: #a0aec0;
+  border: 1px solid #353945;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.timeframe-selector button:hover {
+  background: #353945;
+  color: #fff;
+}
+
+.timeframe-selector button.active {
+  background: #4ade80;
+  color: #181a20;
+  border-color: #4ade80;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #353945;
+  border-top: 4px solid #4ade80;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .empty-state-message {
-    text-align: center;
-    color: #b5b5b5;
-    margin: auto;
-} 
+  text-align: center;
+  padding: 32px;
+  color: #a0aec0;
+}
+
+.empty-state-message h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.empty-state-message p {
+  font-size: 0.95rem;
+  color: #a0aec0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .timeframe-selector {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .timeframe-selector button {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+  }
+}

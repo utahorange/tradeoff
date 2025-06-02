@@ -13,6 +13,7 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  pointer-events: none;
 }
 
 .loading-spinner {
@@ -26,8 +27,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Error message */
@@ -44,6 +49,7 @@
   display: flex;
   align-items: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
 }
 
 .error-message p {
@@ -63,14 +69,19 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
+.loading-overlay > *,
+.error-message > * {
+  pointer-events: auto;
+}
+
 .competitions-container {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   background: #181a20;
   color: #f1f1f1;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   overflow: hidden;
-  position: fixed;
+  position: relative;
   width: 100%;
   top: 0;
   left: 0;
@@ -119,6 +130,7 @@
   cursor: pointer;
   transition: all 0.2s;
   border-bottom: 2px solid transparent;
+  pointer-events: auto;
 }
 
 .competitions-tab.active {
@@ -381,7 +393,7 @@
   .form-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .competitions-tab {
     padding: 10px 12px;
     font-size: 0.9rem;

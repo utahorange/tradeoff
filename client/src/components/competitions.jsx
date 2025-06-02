@@ -10,8 +10,9 @@ import {
   FaChartLine,
 } from "react-icons/fa";
 import axios from "axios";
-import Navbar from './Navbar';
+import Navbar from "./Navbar";
 import "./Competitions.css";
+import { useNavigate } from "react-router-dom";
 
 const Competitions = () => {
   console.log("Competitions component mounting");
@@ -42,6 +43,8 @@ const Competitions = () => {
     initialCash: 100000,
     visibility: "public",
   });
+
+  const navigate = useNavigate();
 
   // Fetch data when component mounts or active tab changes
   useEffect(() => {
@@ -383,7 +386,12 @@ const Competitions = () => {
                         <p className="game-card-host">by {game.host}</p>
                         <p className="mt-2">{game.details}</p>
                       </div>
-                      <button className="button-secondary">Details</button>
+                      <button
+                        className="button-secondary"
+                        onClick={() => navigate(`/competitions/${game.id}`)}
+                      >
+                        Details
+                      </button>
                     </div>
                     <div className="game-card-details">
                       <div className="game-detail">
@@ -407,7 +415,7 @@ const Competitions = () => {
                           <FaUsers className="mr-1" /> # of Players
                         </span>
                         <span className="game-detail-value">
-                          {game.players.toLocaleString()}
+                          {game.players}
                         </span>
                       </div>
                       <div className="game-detail">
