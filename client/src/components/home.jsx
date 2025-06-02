@@ -10,19 +10,52 @@ import { CgLogOut } from "react-icons/cg";
 import { useNavigate } from 'react-router-dom';
 
 const Home = ({setLoggedInUser}) => {
-    const navigate = useNavigate();
-    const [holdings, setHoldings] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [balance, setBalance] = useState(0);
-    const [friendRequests, setFriendRequests] = useState([]);
-    const [friends, setFriends] = useState([]);
-    
-    const handleLogout = () => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('username');
-      setLoggedInUser(null);
-    };
+  const navigate = useNavigate();
+  const [holdings, setHoldings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [balance, setBalance] = useState(0);
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [friends, setFriends] = useState([]);
+  
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    setLoggedInUser(null);
+  };
+
+  useEffect(() => {
+      const fetchData = async () => {
+          try {
+              const token = localStorage.getItem('token');
+              const [holdingsRes, balanceRes, friendRequestsRes, friendsRes] = await Promise.all([
+                  axios.get('http://localhost:8080/api/holdings', {
+                      headers: { Authorization: `Bearer ${token}` }
+                  }),
+                  axios.get('http://localhost:8080/api/balance', {
+                      headers: { Authorization: `Bearer ${token}` }
+                  }),
+                  axios.get('http://localhost:8080/api/friends/requests', {
+                      headers: { Authorization: `Bearer ${token}` }
+                  }),
+                  axios.get('http://localhost:8080/api/friends', {
+                      headers: { Authorization: `Bearer ${token}` }
+                  })
+              ]);
+              
+              setHoldings(holdingsRes.data.holdings);
+              setBalance(balanceRes.data.balance);
+              setFriendRequests(friendRequestsRes.data.requests || []);
+              setFriends(friendsRes.data.friends || []);
+          } catch (err) {
+              console.error('Error fetching data:', err);
+              setError('Failed to fetch data');
+          } finally {
+              setLoading(false);
+          }
+      };
+      fetchData();
+    }, []);
 
     return (
       <div className="dashboard-root">
