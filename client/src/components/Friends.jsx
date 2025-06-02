@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, Input, Button, Avatar, Badge, message } from 'antd';
 import { UserOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
-import './Dashboard.css';
+import Navbar from './Navbar';
+import './Friends.css';
 
 const API_URL = 'http://localhost:8080/api';
 
@@ -115,32 +116,20 @@ const Friends = () => {
     };
 
     return (
-        <div className="dashboard-root">
-            <aside className="dashboard-sidebar">
-                <div className="sidebar-logo">TradeOff</div>
-                <nav className="sidebar-nav">
-                    <div className="sidebar-section">Pages</div>
-                    <ul>
-                        <li onClick={() => navigate('/')}>Portfolio</li>
-                        <li onClick={() => navigate('/stats')}>Stock Statistics</li>
-                        <li className="active">Friends</li>
-                        <li>Competitions</li>
-                    </ul>
-                </nav>
-            </aside>
-            <main className="dashboard-main">
+        <div className="friends-container">
+            <Navbar />
+            <main className="friends-main">
                 <div className="p-6 max-w-4xl mx-auto">
                     <h1 className="text-2xl font-bold mb-6 text-white">Friends</h1>
                     
                     {/* Search Section */}
-                    <Card title="Find Friends" className="mb-6" style={{ background: '#23262f', borderColor: '#353945' }}>
+                    <Card title="Find Friends" className="mb-6">
                         <div className="flex gap-2">
                             <Input
                                 placeholder="Search users by username"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onPressEnter={handleSearch}
-                                style={{ background: '#181a20', borderColor: '#353945', color: '#fff' }}
                             />
                             <Button type="primary" onClick={handleSearch} loading={loading}>
                                 Search
@@ -150,10 +139,10 @@ const Friends = () => {
                         {searchResults.length > 0 && (
                             <div className="mt-4">
                                 {searchResults.map(user => (
-                                    <div key={user._id} className="flex items-center justify-between p-2 border-b border-gray-700">
-                                        <div className="flex items-center gap-2">
+                                    <div key={user._id} className="friend-item">
+                                        <div className="friend-info">
                                             <Avatar icon={<UserOutlined />} />
-                                            <span className="text-white">{user.username}</span>
+                                            <span className="friend-username">{user.username}</span>
                                         </div>
                                         <Button type="primary" onClick={() => handleSendRequest(user._id)}>
                                             Add Friend
@@ -163,7 +152,7 @@ const Friends = () => {
                             </div>
                         )}
                         {searchTerm.length >= 2 && searchResults.length === 0 && !loading && (
-                            <p className="text-center text-gray-400 mt-4">No users found</p>
+                            <div className="empty-state">No users found</div>
                         )}
                     </Card>
 
@@ -173,19 +162,18 @@ const Friends = () => {
                             title={
                                 <div className="flex items-center gap-2 text-white">
                                     Friend Requests
-                                    <Badge count={friendRequests.length} style={{ backgroundColor: '#52c41a' }} />
+                                    <Badge count={friendRequests.length} />
                                 </div>
                             } 
                             className="mb-6"
-                            style={{ background: '#23262f', borderColor: '#353945' }}
                         >
                             {friendRequests.map(request => (
-                                <div key={request._id} className="flex items-center justify-between p-2 border-b border-gray-700">
-                                    <div className="flex items-center gap-2">
+                                <div key={request._id} className="friend-item">
+                                    <div className="friend-info">
                                         <Avatar icon={<UserOutlined />} />
-                                        <span className="text-white">{request.sender.username}</span>
+                                        <span className="friend-username">{request.sender.username}</span>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="friend-actions">
                                         <Button
                                             type="primary"
                                             icon={<CheckOutlined />}
@@ -207,17 +195,16 @@ const Friends = () => {
                     )}
 
                     {/* Friends List Section */}
-                    <Card 
-                        title={<span className="text-white">My Friends ({friends.length})</span>}
-                        style={{ background: '#23262f', borderColor: '#353945' }}
-                    >
+                    <Card title={<span className="text-white">My Friends ({friends.length})</span>}>
                         {friends.length === 0 ? (
-                            <p className="text-center text-gray-400">You haven't added any friends yet</p>
+                            <div className="empty-state">You haven't added any friends yet</div>
                         ) : (
                             friends.map(friend => (
-                                <div key={friend._id} className="flex items-center gap-2 p-2 border-b border-gray-700">
-                                    <Avatar icon={<UserOutlined />} />
-                                    <span className="text-white">{friend.username}</span>
+                                <div key={friend._id} className="friend-item">
+                                    <div className="friend-info">
+                                        <Avatar icon={<UserOutlined />} />
+                                        <span className="friend-username">{friend.username}</span>
+                                    </div>
                                 </div>
                             ))
                         )}
