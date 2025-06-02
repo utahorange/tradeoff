@@ -240,7 +240,7 @@
   display: flex;
   gap: 16px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding: 8px 0 8px 24px;
   margin-bottom: 12px;
   scrollbar-width: thin;
   scrollbar-color: #353945 #23262f;
@@ -267,6 +267,8 @@
   color: #fff;
   transition: transform 0.15s, box-shadow 0.15s;
   font-size: 0.98rem;
+  position: relative;
+  z-index: 1;
 }
 .dashboard-holding-card:hover {
   transform: translateY(-2px) scale(1.02);
@@ -300,6 +302,14 @@
   align-items: stretch;
   justify-content: center;
   height: 100%;
+  position: relative;
+}
+.dashboard-portfolio-graph-center > div {
+  width: calc(100% - 36px);
+  height: calc(100% - 36px);
+  position: absolute;
+  top: 18px;
+  left: 18px;
 }
 .empty-state {
     display: flex;
@@ -341,13 +351,15 @@
 }
 
 .balance-section {
-  flex: 1;
+  flex: 0 1 auto;
   text-align: left;
+  margin-right: auto;
 }
 
 .holdings-section {
-  flex: 1;
+  flex: 0 1 auto;
   text-align: right;
+  margin-left: auto;
 }
 
 .balance-section h2,

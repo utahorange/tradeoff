@@ -147,7 +147,7 @@ const StockStats = ({ setLoggedInUser }) => {
                         </tbody>
                     </table>
                 </div>
-                <div className="portfolio-stats">
+                <>
                     <h2>Portfolio Statistics</h2>
                     <div className="stats-grid">
                         <div className="stat-card">
@@ -169,7 +169,7 @@ const StockStats = ({ setLoggedInUser }) => {
                             </p>
                         </div>
                     </div>
-                </div>
+                </>
             </main>
             <aside className="dashboard-rightbar">
                 <div className="rightbar-section">
