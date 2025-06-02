@@ -271,14 +271,6 @@ const StockDetail = () => {
                             <p>${stockData.marketCap.toLocaleString()}</p>
                         </div>
                         <div className="detail-card">
-                            <h3>52 Week High</h3>
-                            <p>${stockData.weekHigh52 ? stockData.weekHigh52.toFixed(2) : 'N/A'}</p>
-                        </div>
-                        <div className="detail-card">
-                            <h3>52 Week Low</h3>
-                            <p>${stockData.weekLow52 ? stockData.weekLow52.toFixed(2) : 'N/A'}</p>
-                        </div>
-                        <div className="detail-card">
                             <h3>Volume</h3>
                             <p>{stockData.volume.toLocaleString()}</p>
                         </div>
