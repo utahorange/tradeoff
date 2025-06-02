@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import PortfolioGraph from './PortfolioGraph';
 import StockSearch from './StockSearch';
-import './Dashboard.css';
-import { IoMdSunny } from "react-icons/io";
+import Navbar from './Navbar';
+import './Home.css';
 import { FaUserCircle } from "react-icons/fa";
 import { CgLogOut } from "react-icons/cg";
 import { useNavigate } from 'react-router-dom';
@@ -49,20 +49,7 @@ const Home = ({setLoggedInUser}) => {
 
     return (
       <div className="dashboard-root">
-        {/* Sidebar */}
-        <aside className="dashboard-sidebar">
-          <div className="sidebar-logo">TradeOff</div>
-          <nav className="sidebar-nav">
-            <div className="sidebar-section">Pages</div>
-            <ul>
-              <li onClick={() => navigate('/')}>Portfolio</li>
-              <li onClick={() => navigate('/stats')}>Stock Statistics</li>
-              <li onClick={() => navigate('/competitions')}>Competitions</li>
-              <li onClick={() => navigate('/friends')}>Friends</li>
-            </ul>
-          </nav>
-        </aside>
-        {/* Main Content */}
+        <Navbar />
         <main className="dashboard-main">
           {/* Top Bar */}
           <header className="dashboard-topbar">

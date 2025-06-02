@@ -5,6 +5,7 @@ import { CgLogOut } from "react-icons/cg";
 import { FaUserCircle } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import StockSearch from './StockSearch';
+import Navbar from './Navbar';
 
 const StockStats = ({ setLoggedInUser }) => {
     const [portfolioData, setPortfolioData] = useState(null);
@@ -28,9 +29,7 @@ const StockStats = ({ setLoggedInUser }) => {
                         Authorization: `Bearer ${token}`
                     }
                 });
-                console.log(response.data)
                 setPortfolioData(response.data);
-                console.log(portfolioData)
                 setLoading(false);
             } catch (err) {
                 setError('Failed to fetch portfolio data');
@@ -67,17 +66,7 @@ const StockStats = ({ setLoggedInUser }) => {
 
     return (
         <div className="dashboard-root">
-            <aside className="dashboard-sidebar">
-                <div className="sidebar-logo">TradeOff</div>
-                <nav className="sidebar-nav">
-                    <div className="sidebar-section">Pages</div>
-                    <ul>
-                        <li onClick={() => navigate('/')}>Portfolio</li>
-                        <li onClick={() => navigate('/stats')}>Stock Statistics</li>
-                        <li>Competitions</li>
-                    </ul>
-                </nav>
-            </aside>
+            <Navbar />
             <main className="dashboard-main">
                 <header className="dashboard-topbar">
                     <div className="search-container">
@@ -171,26 +160,6 @@ const StockStats = ({ setLoggedInUser }) => {
                     </div>
                 </>
             </main>
-            <aside className="dashboard-rightbar">
-                <div className="rightbar-section">
-                    <h4>Notifications</h4>
-                    <ul>
-                        <li>You have a new friend request</li>
-                        <li>New user registered</li>
-                        <li>Random Notification</li>
-                    </ul>
-                </div>
-                <div className="rightbar-section">
-                    <h4>Friends</h4>
-                    <ul>
-                        <li>Spandaddy</li>
-                        <li>JZ Washington</li>
-                        <li>teshy</li>
-                        <li>taiGoat</li>
-                        <li>deSchlong</li>
-                    </ul>
-                </div>
-            </aside>
         </div>
     );
 };

@@ -10,6 +10,7 @@ import {
   FaChartLine,
 } from "react-icons/fa";
 import axios from "axios";
+import Navbar from './Navbar';
 import "./Competitions.css";
 
 const Competitions = () => {
@@ -265,6 +266,7 @@ const Competitions = () => {
 
   return (
     <div className="competitions-container">
+      <Navbar />
       {loading && (
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
