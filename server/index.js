@@ -1,4 +1,4 @@
-// // server/index.js
+// server/index.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -7,7 +7,12 @@ const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const Holding = require("./Models/stocks");
 const PortfolioSnapshot = require("./Models/portfolioSnapshot");
-const Competition = require("./Models/competition");
+const FriendRequest = require('./Models/friendRequest');
+const userRoutes = require('./routes/userRoutes');
+const Competition = require('./Models/competition');
+const CompetitionParticipant = require('./Models/competitionParticipant');
+const CompetitionPortfolio = require('./Models/competitionPortfolio');
+require("./Models/competition");
 const CompetitionParticipant = require("./Models/competitionParticipant");
 const CompetitionPortfolio = require("./Models/competitionPortfolio");
 require("dotenv").config();
@@ -19,6 +24,9 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors());
+
+// Routes
+app.use('/api/user', userRoutes);
 
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
@@ -129,9 +137,13 @@ const userSchema = new mongoose.Schema({
   },
   balance: {
     type: Number,
-    default: 1000,
+    default: 10000,
     required: true,
   },
+    friends: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
   createdAt: {
     type: Date,
     default: Date.now,
@@ -155,13 +167,13 @@ app.post("/api/register", async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new user
-    const user = new User({
-      username,
-      email,
-      password: hashedPassword,
-      balance: 1000,
-    });
+        // Create new user
+        const user = new User({
+            username,
+            email,
+            password: hashedPassword,
+            balance: 1000
+        });
 
     await user.save();
 
@@ -591,6 +603,288 @@ app.post("/api/competitions/:competitionId/join", auth, async (req, res) => {
   }
 });
 
+// Competition Routes
+// Get all competitions
+app.get('/api/competitions', auth, async (req, res) => {
+    try {
+        const competitions = await Competition.find();
+        res.json(competitions);
+    } catch (error) {
+        console.error('Error fetching competitions:', error);
+        res.status(500).json({ message: 'Error fetching competitions' });
+    }
+});
+
+// Get competitions the user has joined (My Games)
+app.get('/api/competitions/my-games', auth, async (req, res) => {
+    try {
+        // Find all competitions the user has joined
+        const participations = await CompetitionParticipant.find({ userId: req.user._id })
+            .populate('competitionId');
+        
+        // Format the response to match the frontend expectations
+        const myGames = await Promise.all(participations.map(async (p) => {
+            // Count the number of players in this competition
+            const playerCount = await CompetitionParticipant.countDocuments({ 
+                competitionId: p.competitionId._id 
+            });
+            
+            // Format dates for display
+            const startDateFormatted = new Date(p.competitionId.startDate)
+                .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            
+            const endDateFormatted = p.competitionId.endDate 
+                ? new Date(p.competitionId.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                : 'No End';
+            
+            // Format starting cash for display
+            const startingCashFormatted = `$${p.competitionId.startingCash.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            return {
+                id: p.competitionId._id,
+                name: p.competitionId.name,
+                host: p.competitionId.host,
+                details: p.competitionId.details,
+                startDate: startDateFormatted,
+                endDate: endDateFormatted,
+                players: playerCount,
+                startingCash: startingCashFormatted,
+                joined: true
+            };
+        }));
+        
+        res.json(myGames);
+    } catch (error) {
+        console.error('Error fetching my games:', error);
+        res.status(500).json({ message: 'Error fetching my games' });
+    }
+});
+
+// Get available games to join
+app.get('/api/competitions/available', auth, async (req, res) => {
+    try {
+        // Find competitions the user has already joined
+        const joinedCompetitions = await CompetitionParticipant.find({ userId: req.user._id })
+            .select('competitionId');
+        const joinedIds = joinedCompetitions.map(j => j.competitionId);
+        
+        // Find public competitions the user hasn't joined yet
+        const availableCompetitions = await Competition.find({
+            _id: { $nin: joinedIds },
+            visibility: 'public'
+        });
+        
+        // Format the response to match the frontend expectations
+        const availableGames = await Promise.all(availableCompetitions.map(async (comp) => {
+            // Count the number of players in this competition
+            const playerCount = await CompetitionParticipant.countDocuments({ 
+                competitionId: comp._id 
+            });
+            
+            // Format dates for display
+            const startDateFormatted = new Date(comp.startDate)
+                .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            
+            const endDateFormatted = comp.endDate 
+                ? new Date(comp.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                : 'No End';
+            
+            // Format starting cash for display
+            const startingCashFormatted = `$${comp.startingCash.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            return {
+                id: comp._id,
+                name: comp.name,
+                host: comp.host,
+                details: comp.details,
+                startDate: startDateFormatted,
+                endDate: endDateFormatted,
+                players: playerCount,
+                startingCash: startingCashFormatted,
+                joined: false,
+                locked: comp.locked
+            };
+        }));
+        
+        res.json(availableGames);
+    } catch (error) {
+        console.error('Error fetching available games:', error);
+        res.status(500).json({ message: 'Error fetching available games' });
+    }
+});
+
+// Get leaderboard for a competition
+app.get('/api/competitions/:competitionId/leaderboard', auth, async (req, res) => {
+    try {
+        const { competitionId } = req.params;
+        
+        // Find all participants in this competition
+        const participants = await CompetitionParticipant.find({ competitionId })
+            .populate('userId', 'username')
+            .sort({ accountValue: -1 });
+        
+        // Update ranks based on sorted order
+        for (let i = 0; i < participants.length; i++) {
+            participants[i].rank = i + 1;
+            await participants[i].save();
+        }
+        
+        // Format the leaderboard data to match the frontend expectations
+        const leaderboardData = participants.map(p => {
+            const isCurrentUser = p.userId._id.toString() === req.user._id.toString();
+            
+            // Format account value
+            const accountValue = `$${p.accountValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            // Format today's change
+            const todayChangePercent = (p.accountValue - p.todayChange > 0) 
+                ? (p.todayChange / (p.accountValue - p.todayChange) * 100).toFixed(2) 
+                : 0;
+            const todayChange = `${p.todayChange >= 0 ? '+' : ''}$${Math.abs(p.todayChange).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${p.todayChange >= 0 ? '+' : ''}${todayChangePercent}%)`;
+            
+            // Format overall change
+            const overallChangePercent = (p.accountValue - p.overallChange > 0) 
+                ? (p.overallChange / (p.accountValue - p.overallChange) * 100).toFixed(2) 
+                : 0;
+            const overallChange = `${p.overallChange >= 0 ? '+' : ''}$${Math.abs(p.overallChange).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${p.overallChange >= 0 ? '+' : ''}${overallChangePercent}%)`;
+            
+            return {
+                rank: p.rank,
+                username: p.userId.username,
+                accountValue: accountValue,
+                todayChange: todayChange,
+                overallChange: overallChange,
+                isCurrentUser: isCurrentUser
+            };
+        });
+        
+        res.json(leaderboardData);
+    } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        res.status(500).json({ message: 'Error fetching leaderboard' });
+    }
+});
+
+// Create a new competition
+app.post('/api/competitions', auth, async (req, res) => {
+    try {
+        const { name, description, startDate, endDate, initialCash, visibility } = req.body;
+        
+        // Create the competition
+        const competition = new Competition({
+            name,
+            host: req.user.username,
+            details: description,
+            startDate: new Date(startDate),
+            endDate: endDate ? new Date(endDate) : null,
+            startingCash: initialCash || 100000,
+            visibility,
+            createdBy: req.user._id
+        });
+        
+        await competition.save();
+        
+        // Creator automatically joins their own competition
+        const participant = new CompetitionParticipant({
+            userId: req.user._id,
+            competitionId: competition._id,
+            accountValue: competition.startingCash,
+            todayChange: 0,
+            overallChange: 0,
+            rank: 1
+        });
+        
+        await participant.save();
+        
+        // Create a portfolio for the creator
+        const portfolio = new CompetitionPortfolio({
+            userId: req.user._id,
+            competitionId: competition._id,
+            stocks: [],
+            cashBalance: competition.startingCash
+        });
+        
+        await portfolio.save();
+        
+        // Increment the player count
+        competition.players = 1;
+        await competition.save();
+        
+        res.status(201).json({
+            message: 'Competition created successfully',
+            competition
+        });
+    } catch (error) {
+        console.error('Error creating competition:', error);
+        res.status(500).json({ message: 'Error creating competition' });
+    }
+});
+
+// Join a competition
+app.post('/api/competitions/:competitionId/join', auth, async (req, res) => {
+    try {
+        const { competitionId } = req.params;
+        
+        // Check if competition exists
+        const competition = await Competition.findById(competitionId);
+        if (!competition) {
+            return res.status(404).json({ message: 'Competition not found' });
+        }
+        
+        // Check if user has already joined
+        const existingParticipant = await CompetitionParticipant.findOne({
+            userId: req.user._id,
+            competitionId
+        });
+        
+        if (existingParticipant) {
+            return res.status(400).json({ message: 'You have already joined this competition' });
+        }
+        
+        // Check if competition is locked
+        if (competition.locked) {
+            return res.status(403).json({ message: 'This competition is locked and cannot be joined' });
+        }
+        
+        // Get current participant count to determine rank
+        const participantCount = await CompetitionParticipant.countDocuments({ competitionId });
+        
+        // Create new participant
+        const participant = new CompetitionParticipant({
+            userId: req.user._id,
+            competitionId,
+            accountValue: competition.startingCash,
+            todayChange: 0,
+            overallChange: 0,
+            rank: participantCount + 1
+        });
+        
+        await participant.save();
+        
+        // Create portfolio for the participant
+        const portfolio = new CompetitionPortfolio({
+            userId: req.user._id,
+            competitionId,
+            stocks: [],
+            cashBalance: competition.startingCash
+        });
+        
+        await portfolio.save();
+        
+        // Update player count in competition
+        competition.players += 1;
+        await competition.save();
+        
+        res.status(201).json({
+            message: 'Successfully joined competition',
+            competition
+        });
+    } catch (error) {
+        console.error('Error joining competition:', error);
+        res.status(500).json({ message: 'Error joining competition' });
+    }
+});
+
 // Protected route example
 app.get("/api/profile", auth, async (req, res) => {
   res.json({
@@ -600,6 +894,131 @@ app.get("/api/profile", auth, async (req, res) => {
       email: req.user.email,
     },
   });
+});
+
+// Search users endpoint
+app.get('/api/users/search', auth, async (req, res) => {
+    try {
+        const searchTerm = req.query.username || '';
+        if (searchTerm.length < 2) {
+            return res.status(400).json({ message: 'Search term must be at least 2 characters long' });
+        }
+
+        const users = await User.find({
+            username: { $regex: searchTerm, $options: 'i' },
+            _id: { $ne: req.user._id } // Exclude the current user
+        }).select('username _id');
+
+        res.json({ users });
+    } catch (error) {
+        console.error('Search users error:', error);
+        res.status(500).json({ message: 'Error searching users' });
+    }
+});
+
+// Send friend request
+app.post('/api/friends/request', auth, async (req, res) => {
+    try {
+        const { receiverId } = req.body;
+        
+        // Check if receiver exists
+        const receiver = await User.findById(receiverId);
+        if (!receiver) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Check if request already exists
+        const existingRequest = await FriendRequest.findOne({
+            $or: [
+                { sender: req.user._id, receiver: receiverId },
+                { sender: receiverId, receiver: req.user._id }
+            ]
+        });
+
+        if (existingRequest) {
+            return res.status(400).json({ message: 'Friend request already exists' });
+        }
+
+        // Check if they're already friends
+        if (req.user.friends.includes(receiverId)) {
+            return res.status(400).json({ message: 'Users are already friends' });
+        }
+
+        // Create new friend request
+        const friendRequest = new FriendRequest({
+            sender: req.user._id,
+            receiver: receiverId
+        });
+
+        await friendRequest.save();
+        res.status(201).json({ message: 'Friend request sent successfully' });
+    } catch (error) {
+        console.error('Send friend request error:', error);
+        res.status(500).json({ message: 'Error sending friend request' });
+    }
+});
+
+// Get pending friend requests
+app.get('/api/friends/requests', auth, async (req, res) => {
+    try {
+        const requests = await FriendRequest.find({
+            receiver: req.user._id,
+            status: 'pending'
+        }).populate('sender', 'username');
+
+        res.json({ requests });
+    } catch (error) {
+        console.error('Get friend requests error:', error);
+        res.status(500).json({ message: 'Error fetching friend requests' });
+    }
+});
+
+// Respond to friend request
+app.post('/api/friends/respond', auth, async (req, res) => {
+    try {
+        const { requestId, accept } = req.body;
+        
+        const request = await FriendRequest.findOne({
+            _id: requestId,
+            receiver: req.user._id,
+            status: 'pending'
+        });
+
+        if (!request) {
+            return res.status(404).json({ message: 'Friend request not found' });
+        }
+
+        if (accept) {
+            // Add each user to the other's friends list
+            await User.findByIdAndUpdate(request.sender, {
+                $addToSet: { friends: request.receiver }
+            });
+            await User.findByIdAndUpdate(request.receiver, {
+                $addToSet: { friends: request.sender }
+            });
+            request.status = 'accepted';
+        } else {
+            request.status = 'rejected';
+        }
+
+        await request.save();
+        res.json({ message: `Friend request ${accept ? 'accepted' : 'rejected'}` });
+    } catch (error) {
+        console.error('Respond to friend request error:', error);
+        res.status(500).json({ message: 'Error responding to friend request' });
+    }
+});
+
+// Get friend list
+app.get('/api/friends', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id)
+            .populate('friends', 'username');
+        res.json({ friends: user.friends });
+    } catch (error) {
+        console.error('Get friends error:', error);
+        res.status(500).json({ message: 'Error fetching friends list' });
+    }
 });
 
 // Update the holdings endpoint to create a snapshot when holdings change
@@ -873,60 +1292,18 @@ app.get("/api/portfolio/current-value", auth, async (req, res) => {
       }
     }
 
-    res.json({
-      totalValue: totalValue + user.balance,
-      holdings: holdingsWithCurrentPrice,
-      cashBalance: user.balance,
-    });
-  } catch (error) {
-    console.error("Get current portfolio value error:", error);
-    res.status(500).json({ message: "Error fetching current portfolio value" });
-  }
-});
-
-// Get all portfolio snapshots for a competition, grouped by user
-app.get(
-  "/api/competitions/:competitionId/snapshots",
-  auth,
-  async (req, res) => {
-    try {
-      const { competitionId } = req.params;
-      const PortfolioSnapshot = require("./Models/portfolioSnapshot");
-      const User = mongoose.model("User");
-
-      // Find all snapshots for this competition
-      const snapshots = await PortfolioSnapshot.find({
-        competitionId,
-        type: "competition",
-      }).sort({ timestamp: 1 });
-
-      // Group by user
-      const userMap = {};
-      for (const snap of snapshots) {
-        const userId = snap.user?.toString();
-        if (!userId) continue;
-        if (!userMap[userId]) userMap[userId] = { userId, snapshots: [] };
-        userMap[userId].snapshots.push(snap);
-      }
-
-      // Attach usernames
-      const userIds = Object.keys(userMap);
-      const users = await User.find({ _id: { $in: userIds } });
-      users.forEach((u) => {
-        userMap[u._id.toString()].username = u.username;
-      });
-
-      // Return as array
-      const result = Object.values(userMap);
-      res.json(result);
+        res.json({
+            totalValue: totalValue + user.balance,
+            holdings: holdingsWithCurrentPrice,
+            cashBalance: user.balance
+        });
     } catch (error) {
-      console.error("Error fetching competition snapshots:", error);
-      res.status(500).json({ message: "Error fetching competition snapshots" });
+        console.error('Get current portfolio value error:', error);
+        res.status(500).json({ message: 'Error fetching current portfolio value' });
     }
-  }
-);
+});
 
 // // app.use('/api/auth', authRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

@@ -1,0 +1,173 @@
+.stock-search-container {
+    position: fixed;
+    top: 0;
+    left: 15%;
+    transform: none;
+    width: 100%;
+    max-width: 800px;
+    padding: 12px 24px;
+    z-index: 1003;
+    background-color: transparent;
+}
+
+.search-form {
+    position: relative;
+    width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 12px;
+    background-color: #23262f;
+    color: #ffffff;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    cursor: text;
+}
+
+.search-input:focus {
+    outline: none;
+    background-color: #2a2d36;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.search-input::placeholder {
+    color: #666;
+}
+
+.loading-indicator {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+.filter-container {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    justify-content: flex-start;
+}
+
+.filter-select {
+    padding: 8px 36px 8px 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: #23262f;
+    color: #ffffff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    -webkit-appearance: none;  /* Remove default arrow in Chrome/Safari */
+    -moz-appearance: none;     /* Remove default arrow in Firefox */
+    appearance: none;          /* Remove default arrow in other browsers */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+.filter-select:hover {
+    background-color: #2a2d36;
+}
+
+.filter-select:focus {
+    outline: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.search-results {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background-color: #23262f;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1004;
+}
+
+.stock-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #2a2d36;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.stock-result-item:last-child {
+    border-bottom: none;
+}
+
+.stock-result-item:hover {
+    background-color: #2a2d36;
+}
+
+.stock-info {
+    flex: 1;
+}
+
+.stock-symbol {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.stock-name {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.stock-price-info {
+    text-align: right;
+    margin-left: 16px;
+}
+
+.stock-price {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.stock-change {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.stock-change.positive {
+    color: #4ade80;
+}
+
+.stock-change.negative {
+    color: #f87171;
+}
+
+/* Scrollbar styling */
+.search-results::-webkit-scrollbar {
+    width: 8px;
+}
+
+.search-results::-webkit-scrollbar-track {
+    background: #23262f;
+    border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+    background: #353945;
+    border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+    background: #404552;
+}

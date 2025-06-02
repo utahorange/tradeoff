@@ -3,10 +3,37 @@
     margin: 0 auto;
     padding: 2rem;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    height: calc(100vh - 4rem);
+    overflow-y: auto;
+    position: relative;
+}
+
+.dashboard-root {
+    display: flex;
+    height: 100vh;
+    background: #181a20;
+    color: #f1f1f1;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+}
+
+.dashboard-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 24px;
+    overflow: hidden;
+    min-width: 0;
+    margin-left: 220px; /* Add margin for navbar */
 }
 
 .portfolio-summary {
-    margin-bottom: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .summary-cards {
@@ -42,8 +69,8 @@
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
-    overflow: hidden;
+    margin-bottom: 1.5rem;
+    overflow-x: hidden;
 }
 
 .holdings-table h2 {
@@ -88,15 +115,12 @@ td {
     color: #ff3d00;
 }
 
-.portfolio-stats {
-    margin-top: 2rem;
-}
-
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 2rem;
 }
 
 .stat-card {
@@ -125,17 +149,41 @@ td {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 400px;
+    min-height: 100vh;
+    background: #181a20;
+    padding: 2rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.loading-content {
+    background: #23262f;
+    padding: 3rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
 }
 
 .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
+    width: 50px;
+    height: 50px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin-bottom: 1rem;
+    margin: 0 auto 1.5rem;
+}
+
+.loading-text {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin: 0;
 }
 
 @keyframes spin {
@@ -168,4 +216,11 @@ td {
 .empty-portfolio p {
     margin: 0;
     color: #666;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .dashboard-main {
+        margin-left: 64px;
+    }
 } 

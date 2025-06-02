@@ -1,0 +1,165 @@
+.friends-container {
+  display: flex;
+  height: 100vh;
+  background: #181a20;
+  color: #f1f1f1;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+
+.friends-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  overflow-y: auto;
+  min-width: 0;
+  margin-left: 220px;
+}
+
+/* Card Styles */
+.ant-card {
+  background: #23262f !important;
+  border-color: #353945 !important;
+  margin-bottom: 16px;
+}
+
+.ant-card-head {
+  background: #23262f !important;
+  border-bottom-color: #353945 !important;
+}
+
+.ant-card-head-title {
+  color: #f1f1f1 !important;
+}
+
+/* Input and Button Styles */
+.ant-input {
+  background: #181a20 !important;
+  border-color: #353945 !important;
+  color: #f1f1f1 !important;
+}
+
+.ant-input::placeholder {
+  color: #6c7293 !important;
+}
+
+.ant-input:focus,
+.ant-input:hover {
+  border-color: #4ade80 !important;
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2) !important;
+}
+
+.ant-btn-primary {
+  background: #4ade80 !important;
+  border-color: #4ade80 !important;
+}
+
+.ant-btn-primary:hover {
+  background: #3fcb6e !important;
+  border-color: #3fcb6e !important;
+}
+
+/* Search Results and Friends List */
+.friend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border-bottom: 1px solid #353945;
+}
+
+.friend-item:last-child {
+  border-bottom: none;
+}
+
+.friend-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.friend-username {
+  color: #f1f1f1;
+  font-size: 0.95rem;
+}
+
+/* Friend Request Badge */
+.ant-badge-count {
+  background: #4ade80 !important;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  color: #6c7293;
+  padding: 24px;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  color: #6c7293;
+}
+
+/* Utility classes */
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .friends-main {
+    margin-left: 64px;
+  }
+}
+
+@media (max-width: 768px) {
+  .friends-main {
+    padding: 16px;
+  }
+  
+  .friend-item {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .friend-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+} 

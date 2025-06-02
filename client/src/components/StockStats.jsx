@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './StockStats.css';
+import { CgLogOut } from "react-icons/cg";
+import { FaUserCircle } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
+import StockSearch from './StockSearch';
+import Navbar from './Navbar';
 
-const StockStats = () => {
+const StockStats = ({ setLoggedInUser }) => {
     const [portfolioData, setPortfolioData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      setLoggedInUser(null);
+    };
 
     useEffect(() => {
         const fetchPortfolioData = async () => {
@@ -16,9 +29,7 @@ const StockStats = () => {
                         Authorization: `Bearer ${token}`
                     }
                 });
-                console.log(response.data)
                 setPortfolioData(response.data);
-                console.log(portfolioData)
                 setLoading(false);
             } catch (err) {
                 setError('Failed to fetch portfolio data');
@@ -32,11 +43,19 @@ const StockStats = () => {
         return () => clearInterval(interval);
     }, []);
 
+    const displayData = portfolioData || {
+        totalValue: 0,
+        cashBalance: 0,
+        holdings: []
+    };
+
     if (loading) {
         return (
             <div className="loading-container">
-                <div className="loading-spinner"></div>
-                <p>Loading portfolio data...</p>
+                <div className="loading-content">
+                    <div className="loading-spinner"></div>
+                    <p className="loading-text">Loading portfolio data...</p>
+                </div>
             </div>
         );
     }
@@ -45,86 +64,102 @@ const StockStats = () => {
         return <div className="error-message">{error}</div>;
     }
 
-    if (!portfolioData || !portfolioData.holdings.length) {
-        return (
-            <div className="empty-portfolio">
-                <h2>Your Portfolio is Empty</h2>
-                <p>Start investing by buying some stocks!</p>
-            </div>
-        );
-    }
-
     return (
-        <div className="stock-stats-container">
-            <div className="portfolio-summary">
-                <h2>Portfolio Summary</h2>
-                <div className="summary-cards">
-                    <div className="summary-card">
-                        <h3>Total Value</h3>
-                        <p className="value">${portfolioData.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        <div className="dashboard-root">
+            <Navbar />
+            <main className="dashboard-main">
+                <header className="dashboard-topbar">
+                    <div className="search-container">
+                        <StockSearch />
                     </div>
-                    <div className="summary-card">
-                        <h3>Cash Balance</h3>
-                        <p className="value">${portfolioData.cashBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <div className="dashboard-topbar-icons">
+                        <CgLogOut className="logout-icon" onClick={handleLogout} />
+                        <FaUserCircle 
+                            className="profile-icon" 
+                            onClick={() => {
+                                navigate('/profile');
+                            }}
+                        />
+                    </div>
+                </header>
+                <div className="portfolio-summary">
+                    <h2>Portfolio Summary</h2>
+                    <div className="summary-cards">
+                        <div className="summary-card">
+                            <h3>Total Value</h3>
+                            <p className="value">${displayData.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        </div>
+                        <div className="summary-card">
+                            <h3>Cash Balance</h3>
+                            <p className="value">${displayData.cashBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div className="holdings-table">
                 <h2>Your Holdings</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Symbol</th>
-                            <th>Shares</th>
-                            <th>Avg. Cost</th>
-                            <th>Current Price</th>
-                            <th>Total Value</th>
-                            <th>Total Return</th>
-                            <th>Return %</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {portfolioData.holdings.map((holding) => (
-                            <tr key={holding.symbol}>
-                                <td className="symbol">{holding.symbol}</td>
-                                <td>{holding.quantity}</td>
-                                <td>${holding.purchasePrice.toFixed(2)}</td>
-                                <td>${holding.currentPrice.toFixed(2)}</td>
-                                <td>${holding.value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                <td className={holding.change >= 0 ? 'positive' : 'negative'}>
-                                    ${((holding.currentPrice - holding.purchasePrice) * holding.quantity).toFixed(2)}
-                                </td>
-                                <td className={holding.change >= 0 ? 'positive' : 'negative'}>
-                                    {holding.change >= 0 ? '+' : ''}{holding.change.toFixed(2)}%
-                                </td>
+                <div className="holdings-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Shares</th>
+                                <th>Avg. Cost</th>
+                                <th>Current Price</th>
+                                <th>Total Value</th>
+                                <th>Total Return</th>
+                                <th>Return %</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            <div className="portfolio-stats">
-                <h2>Portfolio Statistics</h2>
-                <div className="stats-grid">
-                    <div className="stat-card">
-                        <h3>Total Return</h3>
-                        <p className={portfolioData.totalValue - portfolioData.cashBalance >= 0 ? 'positive' : 'negative'}>
-                            ${(portfolioData.totalValue - portfolioData.cashBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                    </div>
-                    <div className="stat-card">
-                        <h3>Total Return %</h3>
-                        <p className={portfolioData.totalValue - portfolioData.cashBalance >= 0 ? 'positive' : 'negative'}>
-                            {((portfolioData.totalValue - portfolioData.cashBalance) / portfolioData.cashBalance * 100).toFixed(2)}%
-                        </p>
-                    </div>
-                    <div className="stat-card">
-                        <h3>Number of Positions</h3>
-                        <p>{portfolioData.holdings.length}</p>
-                    </div>
+                        </thead>
+                        <tbody>
+                            {displayData.holdings.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="empty-portfolio-message">
+                                        Your portfolio is empty. Start investing by buying some stocks!
+                                    </td>
+                                </tr>
+                            ) : (
+                                displayData.holdings.map((holding) => (
+                                    <tr key={holding.symbol}>
+                                        <td className="symbol">{holding.symbol}</td>
+                                        <td>{holding.quantity}</td>
+                                        <td>${holding.purchasePrice.toFixed(2)}</td>
+                                        <td>${holding.currentPrice.toFixed(2)}</td>
+                                        <td>${holding.value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        <td className={holding.change >= 0 ? 'positive' : 'negative'}>
+                                            ${((holding.currentPrice - holding.purchasePrice) * holding.quantity).toFixed(2)}
+                                        </td>
+                                        <td className={holding.change >= 0 ? 'positive' : 'negative'}>
+                                            {holding.change >= 0 ? '+' : ''}{holding.change.toFixed(2)}%
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-            </div>
+                <>
+                    <h2>Portfolio Statistics</h2>
+                    <div className="stats-grid">
+                        <div className="stat-card">
+                            <h3>Total Return</h3>
+                            <p className={displayData.totalValue - displayData.cashBalance >= 0 ? 'positive' : 'negative'}>
+                                ${(displayData.totalValue - displayData.cashBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                        </div>
+                        <div className="stat-card">
+                            <h3>Total Return %</h3>
+                            <p className={displayData.totalValue - displayData.cashBalance >= 0 ? 'positive' : 'negative'}>
+                                {((displayData.totalValue - displayData.cashBalance) / displayData.cashBalance * 100).toFixed(2)}%
+                            </p>
+                        </div>
+                        <div className="stat-card">
+                            <h3>Number of Positions</h3>
+                            <p className={displayData.holdings.length > 0 ? 'positive' : 'negative'}>
+                                {displayData.holdings.length}
+                            </p>
+                        </div>
+                    </div>
+                </>
+            </main>
         </div>
     );
 };
