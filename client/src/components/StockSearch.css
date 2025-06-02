@@ -5,7 +5,7 @@
     transform: none;
     width: 100%;
     max-width: 800px;
-    padding: 12px 24px;
+    padding: 1.5rem 24px;
     z-index: 1003;
     background-color: transparent;
 }
@@ -51,7 +51,7 @@
 .filter-container {
     display: flex;
     gap: 12px;
-    margin-top: 12px;
+    margin-top: 16px;
     justify-content: flex-start;
 }
 

@@ -51,7 +51,6 @@ const Home = ({setLoggedInUser}) => {
       <div className="dashboard-root">
         <Navbar />
         <main className="dashboard-main">
-          {/* Top Bar */}
           <header className="dashboard-topbar">
             <div className="search-container">
               <StockSearch />
@@ -61,6 +60,7 @@ const Home = ({setLoggedInUser}) => {
                 className="logout-icon" 
                 onClick={handleLogout}
               />
+              <h2 className="username">{localStorage.getItem('username')}</h2>
               <FaUserCircle 
                 className="profile-icon" 
                 onClick={() => {
@@ -77,7 +77,6 @@ const Home = ({setLoggedInUser}) => {
               <h2>Balance: ${balance.toFixed(2)}</h2>
             </div>
           </div>
-          {/* Holdings Cards Scroll */}
           {loading ? (
             <p>Loading...</p>
           ) : error ? (
@@ -103,12 +102,10 @@ const Home = ({setLoggedInUser}) => {
               ))}
             </div>
           )}
-          {/* Portfolio Value Over Time Graph - Centered and Large */}
           <div className="dashboard-portfolio-graph-center">
             <PortfolioGraph hasHoldings={holdings.length > 0} />
           </div>
         </main>
-        {/* Right Sidebar */}
         <aside className="dashboard-rightbar">
           <div className="rightbar-section">
             <h4>Notifications</h4>

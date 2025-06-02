@@ -8,16 +8,15 @@ import StockSearch from './StockSearch';
 import Navbar from './Navbar';
 
 const StockStats = ({ setLoggedInUser }) => {
+    const navigate = useNavigate();
     const [portfolioData, setPortfolioData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const navigate = useNavigate();
-
     const handleLogout = () => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('username');
-      setLoggedInUser(null);
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        setLoggedInUser(null);
     };
 
     useEffect(() => {
@@ -74,12 +73,10 @@ const StockStats = ({ setLoggedInUser }) => {
                     </div>
                     <div className="dashboard-topbar-icons">
                         <CgLogOut className="logout-icon" onClick={handleLogout} />
-                        <FaUserCircle 
-                            className="profile-icon" 
-                            onClick={() => {
-                                navigate('/profile');
-                            }}
-                        />
+                        <div className="profile-info" onClick={() => navigate('/profile')}>
+                            <FaUserCircle className="profile-icon" />
+                            <span className="username">{localStorage.getItem('username')}</span>
+                        </div>
                     </div>
                 </header>
                 <div className="portfolio-summary">

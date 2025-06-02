@@ -8,10 +8,14 @@ const axios = require('axios');
 const Holding = require('./Models/stocks');
 const PortfolioSnapshot = require('./Models/portfolioSnapshot');
 const FriendRequest = require('./Models/friendRequest');
-const userRoutes = require('./routes/userRoutes');
 const Competition = require('./Models/competition');
 const CompetitionParticipant = require('./Models/competitionParticipant');
 const CompetitionPortfolio = require('./Models/competitionPortfolio');
+const User = require('./Models/user');
+
+const userRoutes = require('./routes/userRoutes');
+const profilePictureRoutes = require('./routes/profilePictureRoutes');
+
 require('dotenv').config();
 // const config = require('./config');
 // const authRoutes = require('./routes/auth');
@@ -24,6 +28,7 @@ app.use(cors());
 
 // Routes
 app.use('/api/user', userRoutes);
+app.use('/api/profile-picture', profilePictureRoutes);
 
 
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
@@ -106,42 +111,6 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://<username>:<passwo
 mongoose.connect(MONGODB_URI)
     .then(() => console.log('MongoDB Connected'))
     .catch(err => console.error('MongoDB connection error:', err));
-
-// User Schema
-const userSchema = new mongoose.Schema({
-    username: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        lowercase: true
-    },
-    password: {
-        type: String,
-        required: true
-    },
-    balance: {
-        type: Number,
-        default: 10000,
-        required: true
-    },
-    friends: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }],
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-});
-
-const User = mongoose.model('User', userSchema);
 
 // Authentication Routes
 app.post('/api/register', async (req, res) => {
