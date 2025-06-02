@@ -58,12 +58,21 @@ const StockDetail = () => {
             });
 
             setBuySuccess('Successfully bought stocks!');
+            // Clear success message after 2 seconds
+            setTimeout(() => {
+                setBuySuccess('');
+            }, 2000);
+            
             //reroute to the home page
             navigate('/');
             setQuantity(1);
         } catch (err) {
             console.error('Error buying stock:', err);
             setBuyError(err.response?.data?.message || 'Failed to buy stock');
+            // Clear error message after 2 seconds
+            setTimeout(() => {
+                setBuyError('');
+            }, 2000);
         }
     };
 

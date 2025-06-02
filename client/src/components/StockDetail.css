@@ -121,6 +121,7 @@
     background: #23262f;
     border-radius: 12px;
     padding: 1.5rem;
+    position: relative;
 }
 
 .buy-stock-section h3 {
@@ -172,20 +173,32 @@
     background-color: #22c55e;
 }
 
-.error-message {
+.error-message, .success-message {
     color: #ef4444;
     margin: 0.5rem 0;
     padding: 0.5rem;
     background-color: rgba(239, 68, 68, 0.1);
     border-radius: 8px;
+    position: relative;
+    z-index: 1000;
+    animation: fadeOut 2s forwards;
 }
 
 .success-message {
     color: #4ade80;
-    margin: 0.5rem 0;
-    padding: 0.5rem;
     background-color: rgba(74, 222, 128, 0.1);
-    border-radius: 8px;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
 }
 
 .dashboard-main {
@@ -193,4 +206,9 @@
     padding: 1rem;
     overflow-y: auto;
     background-color: #141518;
+}
+
+.dashboard-topbar {
+    position: relative;
+    z-index: 999;
 } 
