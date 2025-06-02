@@ -3,7 +3,8 @@ import axios from 'axios';
 import PortfolioGraph from './PortfolioGraph';
 import StockSearch from './StockSearch';
 import './Dashboard.css';
-import { IoMdSettings, IoMdSunny } from "react-icons/io";
+import { IoMdSunny } from "react-icons/io";
+import { FaUserCircle } from "react-icons/fa";
 import { CgLogOut } from "react-icons/cg";
 import { useNavigate } from 'react-router-dom';
 
@@ -56,8 +57,8 @@ const Home = ({setLoggedInUser}) => {
             <ul>
               <li onClick={() => navigate('/')}>Portfolio</li>
               <li onClick={() => navigate('/stats')}>Stock Statistics</li>
+              <li onClick={() => navigate('/competitions')}>Competitions</li>
               <li onClick={() => navigate('/friends')}>Friends</li>
-              <li>Competitions</li>
             </ul>
           </nav>
         </aside>
@@ -73,16 +74,22 @@ const Home = ({setLoggedInUser}) => {
                 className="logout-icon" 
                 onClick={handleLogout}
               />
-              <IoMdSettings 
-                className="settings-icon" 
+              <FaUserCircle 
+                className="profile-icon" 
                 onClick={() => {
-                  console.log('Settings clicked');
+                  navigate('/profile');
                 }}
               />
             </div>
           </header>
-          <h2 style={{marginBottom: 16}}>Your Stock Holdings</h2>
-          <h2>Your Balance: ${balance.toFixed(2)}</h2>
+          <div className="dashboard-summary">
+            <div className="balance-section">
+              <h2>My Stock Holdings</h2>
+            </div>
+            <div className="holdings-section">
+              <h2>Balance: ${balance.toFixed(2)}</h2>
+            </div>
+          </div>
           {/* Holdings Cards Scroll */}
           {loading ? (
             <p>Loading...</p>

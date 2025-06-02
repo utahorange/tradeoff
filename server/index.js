@@ -1,4 +1,4 @@
-// // server/index.js
+// server/index.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -8,6 +8,10 @@ const axios = require('axios');
 const Holding = require('./Models/stocks');
 const PortfolioSnapshot = require('./Models/portfolioSnapshot');
 const FriendRequest = require('./Models/friendRequest');
+const userRoutes = require('./routes/userRoutes');
+const Competition = require('./Models/competition');
+const CompetitionParticipant = require('./Models/competitionParticipant');
+const CompetitionPortfolio = require('./Models/competitionPortfolio');
 require('dotenv').config();
 // const config = require('./config');
 // const authRoutes = require('./routes/auth');
@@ -17,6 +21,9 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors());
+
+// Routes
+app.use('/api/user', userRoutes);
 
 
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
@@ -121,7 +128,7 @@ const userSchema = new mongoose.Schema({
     },
     balance: {
         type: Number,
-        default: 1000,
+        default: 10000,
         required: true
     },
     friends: [{
@@ -156,7 +163,7 @@ app.post('/api/register', async (req, res) => {
             username,
             email,
             password: hashedPassword,
-            balance: 1000
+            balance: 10000
         });
 
         await user.save();
@@ -242,6 +249,288 @@ const auth = async (req, res, next) => {
         res.status(401).json({ message: 'Please authenticate' });
     }
 };
+
+// Competition Routes
+// Get all competitions
+app.get('/api/competitions', auth, async (req, res) => {
+    try {
+        const competitions = await Competition.find();
+        res.json(competitions);
+    } catch (error) {
+        console.error('Error fetching competitions:', error);
+        res.status(500).json({ message: 'Error fetching competitions' });
+    }
+});
+
+// Get competitions the user has joined (My Games)
+app.get('/api/competitions/my-games', auth, async (req, res) => {
+    try {
+        // Find all competitions the user has joined
+        const participations = await CompetitionParticipant.find({ userId: req.user._id })
+            .populate('competitionId');
+        
+        // Format the response to match the frontend expectations
+        const myGames = await Promise.all(participations.map(async (p) => {
+            // Count the number of players in this competition
+            const playerCount = await CompetitionParticipant.countDocuments({ 
+                competitionId: p.competitionId._id 
+            });
+            
+            // Format dates for display
+            const startDateFormatted = new Date(p.competitionId.startDate)
+                .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            
+            const endDateFormatted = p.competitionId.endDate 
+                ? new Date(p.competitionId.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                : 'No End';
+            
+            // Format starting cash for display
+            const startingCashFormatted = `$${p.competitionId.startingCash.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            return {
+                id: p.competitionId._id,
+                name: p.competitionId.name,
+                host: p.competitionId.host,
+                details: p.competitionId.details,
+                startDate: startDateFormatted,
+                endDate: endDateFormatted,
+                players: playerCount,
+                startingCash: startingCashFormatted,
+                joined: true
+            };
+        }));
+        
+        res.json(myGames);
+    } catch (error) {
+        console.error('Error fetching my games:', error);
+        res.status(500).json({ message: 'Error fetching my games' });
+    }
+});
+
+// Get available games to join
+app.get('/api/competitions/available', auth, async (req, res) => {
+    try {
+        // Find competitions the user has already joined
+        const joinedCompetitions = await CompetitionParticipant.find({ userId: req.user._id })
+            .select('competitionId');
+        const joinedIds = joinedCompetitions.map(j => j.competitionId);
+        
+        // Find public competitions the user hasn't joined yet
+        const availableCompetitions = await Competition.find({
+            _id: { $nin: joinedIds },
+            visibility: 'public'
+        });
+        
+        // Format the response to match the frontend expectations
+        const availableGames = await Promise.all(availableCompetitions.map(async (comp) => {
+            // Count the number of players in this competition
+            const playerCount = await CompetitionParticipant.countDocuments({ 
+                competitionId: comp._id 
+            });
+            
+            // Format dates for display
+            const startDateFormatted = new Date(comp.startDate)
+                .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            
+            const endDateFormatted = comp.endDate 
+                ? new Date(comp.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                : 'No End';
+            
+            // Format starting cash for display
+            const startingCashFormatted = `$${comp.startingCash.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            return {
+                id: comp._id,
+                name: comp.name,
+                host: comp.host,
+                details: comp.details,
+                startDate: startDateFormatted,
+                endDate: endDateFormatted,
+                players: playerCount,
+                startingCash: startingCashFormatted,
+                joined: false,
+                locked: comp.locked
+            };
+        }));
+        
+        res.json(availableGames);
+    } catch (error) {
+        console.error('Error fetching available games:', error);
+        res.status(500).json({ message: 'Error fetching available games' });
+    }
+});
+
+// Get leaderboard for a competition
+app.get('/api/competitions/:competitionId/leaderboard', auth, async (req, res) => {
+    try {
+        const { competitionId } = req.params;
+        
+        // Find all participants in this competition
+        const participants = await CompetitionParticipant.find({ competitionId })
+            .populate('userId', 'username')
+            .sort({ accountValue: -1 });
+        
+        // Update ranks based on sorted order
+        for (let i = 0; i < participants.length; i++) {
+            participants[i].rank = i + 1;
+            await participants[i].save();
+        }
+        
+        // Format the leaderboard data to match the frontend expectations
+        const leaderboardData = participants.map(p => {
+            const isCurrentUser = p.userId._id.toString() === req.user._id.toString();
+            
+            // Format account value
+            const accountValue = `$${p.accountValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            // Format today's change
+            const todayChangePercent = (p.accountValue - p.todayChange > 0) 
+                ? (p.todayChange / (p.accountValue - p.todayChange) * 100).toFixed(2) 
+                : 0;
+            const todayChange = `${p.todayChange >= 0 ? '+' : ''}$${Math.abs(p.todayChange).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${p.todayChange >= 0 ? '+' : ''}${todayChangePercent}%)`;
+            
+            // Format overall change
+            const overallChangePercent = (p.accountValue - p.overallChange > 0) 
+                ? (p.overallChange / (p.accountValue - p.overallChange) * 100).toFixed(2) 
+                : 0;
+            const overallChange = `${p.overallChange >= 0 ? '+' : ''}$${Math.abs(p.overallChange).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${p.overallChange >= 0 ? '+' : ''}${overallChangePercent}%)`;
+            
+            return {
+                rank: p.rank,
+                username: p.userId.username,
+                accountValue: accountValue,
+                todayChange: todayChange,
+                overallChange: overallChange,
+                isCurrentUser: isCurrentUser
+            };
+        });
+        
+        res.json(leaderboardData);
+    } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        res.status(500).json({ message: 'Error fetching leaderboard' });
+    }
+});
+
+// Create a new competition
+app.post('/api/competitions', auth, async (req, res) => {
+    try {
+        const { name, description, startDate, endDate, initialCash, visibility } = req.body;
+        
+        // Create the competition
+        const competition = new Competition({
+            name,
+            host: req.user.username,
+            details: description,
+            startDate: new Date(startDate),
+            endDate: endDate ? new Date(endDate) : null,
+            startingCash: initialCash || 100000,
+            visibility,
+            createdBy: req.user._id
+        });
+        
+        await competition.save();
+        
+        // Creator automatically joins their own competition
+        const participant = new CompetitionParticipant({
+            userId: req.user._id,
+            competitionId: competition._id,
+            accountValue: competition.startingCash,
+            todayChange: 0,
+            overallChange: 0,
+            rank: 1
+        });
+        
+        await participant.save();
+        
+        // Create a portfolio for the creator
+        const portfolio = new CompetitionPortfolio({
+            userId: req.user._id,
+            competitionId: competition._id,
+            stocks: [],
+            cashBalance: competition.startingCash
+        });
+        
+        await portfolio.save();
+        
+        // Increment the player count
+        competition.players = 1;
+        await competition.save();
+        
+        res.status(201).json({
+            message: 'Competition created successfully',
+            competition
+        });
+    } catch (error) {
+        console.error('Error creating competition:', error);
+        res.status(500).json({ message: 'Error creating competition' });
+    }
+});
+
+// Join a competition
+app.post('/api/competitions/:competitionId/join', auth, async (req, res) => {
+    try {
+        const { competitionId } = req.params;
+        
+        // Check if competition exists
+        const competition = await Competition.findById(competitionId);
+        if (!competition) {
+            return res.status(404).json({ message: 'Competition not found' });
+        }
+        
+        // Check if user has already joined
+        const existingParticipant = await CompetitionParticipant.findOne({
+            userId: req.user._id,
+            competitionId
+        });
+        
+        if (existingParticipant) {
+            return res.status(400).json({ message: 'You have already joined this competition' });
+        }
+        
+        // Check if competition is locked
+        if (competition.locked) {
+            return res.status(403).json({ message: 'This competition is locked and cannot be joined' });
+        }
+        
+        // Get current participant count to determine rank
+        const participantCount = await CompetitionParticipant.countDocuments({ competitionId });
+        
+        // Create new participant
+        const participant = new CompetitionParticipant({
+            userId: req.user._id,
+            competitionId,
+            accountValue: competition.startingCash,
+            todayChange: 0,
+            overallChange: 0,
+            rank: participantCount + 1
+        });
+        
+        await participant.save();
+        
+        // Create portfolio for the participant
+        const portfolio = new CompetitionPortfolio({
+            userId: req.user._id,
+            competitionId,
+            stocks: [],
+            cashBalance: competition.startingCash
+        });
+        
+        await portfolio.save();
+        
+        // Update player count in competition
+        competition.players += 1;
+        await competition.save();
+        
+        res.status(201).json({
+            message: 'Successfully joined competition',
+            competition
+        });
+    } catch (error) {
+        console.error('Error joining competition:', error);
+        res.status(500).json({ message: 'Error joining competition' });
+    }
+});
 
 // Protected route example
 app.get('/api/profile', auth, async (req, res) => {
@@ -644,7 +933,34 @@ app.get('/api/portfolio/current-value', auth, async (req, res) => {
     }
 });
 
-// Stock search endpoint
+// Change password route (add this directly to the main app, not under /api/user)
+app.post('/api/change-password', auth, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const user = await User.findById(req.user._id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Verify current password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Current password is incorrect' });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (err) {
+        console.error('Change password error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }});
+
+    // Stock search endpoint
 app.get('/api/stocks/search', auth, async (req, res) => {
     try {
         const { query } = req.query;
@@ -703,5 +1019,5 @@ app.get('/api/stocks/:symbol', auth, async (req, res) => {
 
 // // app.use('/api/auth', authRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
