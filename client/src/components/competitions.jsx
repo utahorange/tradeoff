@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import axios from "axios";
 import "./Competitions.css";
+import { useNavigate } from "react-router-dom";
 
 const Competitions = () => {
   console.log("Competitions component mounting");
@@ -41,6 +42,8 @@ const Competitions = () => {
     initialCash: 100000,
     visibility: "public",
   });
+
+  const navigate = useNavigate();
 
   // Fetch data when component mounts or active tab changes
   useEffect(() => {
@@ -263,6 +266,20 @@ const Competitions = () => {
     }
   };
 
+  // Assign a color for the user (use a palette, e.g. based on index)
+  const palette = [
+    "#4299e1",
+    "#f56565",
+    "#48bb78",
+    "#ed8936",
+    "#9f7aea",
+    "#ecc94b",
+    "#38b2ac",
+    "#a0aec0",
+    "#f6ad55",
+    "#fc8181",
+  ];
+
   return (
     <div className="competitions-container">
       {loading && (
@@ -381,7 +398,12 @@ const Competitions = () => {
                         <p className="game-card-host">by {game.host}</p>
                         <p className="mt-2">{game.details}</p>
                       </div>
-                      <button className="button-secondary">Details</button>
+                      <button
+                        className="button-secondary"
+                        onClick={() => navigate(`/competitions/${game.id}`)}
+                      >
+                        Details
+                      </button>
                     </div>
                     <div className="game-card-details">
                       <div className="game-detail">
@@ -417,6 +439,22 @@ const Competitions = () => {
                         </span>
                       </div>
                     </div>
+                    {/* Show color dot for the user */}
+                    <span
+                      className="user-color-dot"
+                      style={{
+                        display: "inline-block",
+                        width: 14,
+                        height: 14,
+                        borderRadius: "50%",
+                        background:
+                          palette[
+                            myGames.findIndex((g) => g.id === game.id) %
+                              palette.length
+                          ],
+                        marginRight: 8,
+                      }}
+                    ></span>
                   </div>
                 ))}
               </div>
@@ -499,6 +537,12 @@ const Competitions = () => {
                   <div className="empty-state-message">
                     <h3>No Games Found</h3>
                     <p>No games found matching your search criteria.</p>
+                    <button
+                      className="button-primary"
+                      onClick={() => setActiveTab("createGame")}
+                    >
+                      Create a New Game
+                    </button>
                   </div>
                 </div>
               )}
