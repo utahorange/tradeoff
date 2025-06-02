@@ -196,7 +196,15 @@ const StockDetail = () => {
                                     id="quantity"
                                     min="1"
                                     value={quantity}
-                                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === '') {
+                                            setQuantity('');
+                                        } else {
+                                            const parsedValue = parseInt(value);
+                                            setQuantity(parsedValue >= 1 ? parsedValue : 1);
+                                        }
+                                    }}
                                 />
                             </div>
                             <div className="total-cost">
