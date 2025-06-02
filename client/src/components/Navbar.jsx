@@ -12,7 +12,12 @@ const Navbar = () => {
 
     return (
         <aside className="dashboard-sidebar">
-            <div className="sidebar-logo">TradeOff</div>
+            <div 
+                className="sidebar-logo"
+                onClick={() => navigate('/')}
+            >
+                TradeOff
+            </div>
             <nav className="sidebar-nav">
                 <div className="sidebar-section">Pages</div>
                 <ul>

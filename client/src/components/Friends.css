@@ -1,6 +1,6 @@
 .friends-container {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   background: #181a20;
   color: #f1f1f1;
   font-family: 'Inter', sans-serif;
@@ -21,27 +21,60 @@
   margin-left: 220px;
 }
 
-/* Card Styles */
+.friends-content {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.friends-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 24px;
+  color: #fff;
+}
+
+.friends-card {
+  margin-bottom: 24px;
+}
+
+.search-container {
+  display: flex;
+  gap: 8px;
+}
+
+.search-results {
+  margin-top: 16px;
+}
+
+/* Override Ant Design Card styles */
 .ant-card {
   background: #23262f !important;
-  border-color: #353945 !important;
-  margin-bottom: 16px;
+  border: none !important;
+  border-radius: 12px !important;
+  margin-bottom: 24px;
 }
 
 .ant-card-head {
   background: #23262f !important;
-  border-bottom-color: #353945 !important;
+  border-bottom: none !important;
+  padding: 16px 24px !important;
 }
 
 .ant-card-head-title {
-  color: #f1f1f1 !important;
+  color: #fff !important;
+}
+
+.ant-card-body {
+  background: #23262f !important;
+  padding: 24px !important;
 }
 
 /* Input and Button Styles */
 .ant-input {
   background: #181a20 !important;
-  border-color: #353945 !important;
-  color: #f1f1f1 !important;
+  border: 1px solid #353945 !important;
+  color: #fff !important;
 }
 
 .ant-input::placeholder {
@@ -50,18 +83,30 @@
 
 .ant-input:focus,
 .ant-input:hover {
-  border-color: #4ade80 !important;
-  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2) !important;
+  border-color: #4299e1 !important;
+}
+
+/* Override Ant Design Button styles */
+.ant-btn {
+  border: none !important;
+  background: #353945 !important;
+  color: #fff !important;
 }
 
 .ant-btn-primary {
-  background: #4ade80 !important;
-  border-color: #4ade80 !important;
+  background: #4299e1 !important;
 }
 
 .ant-btn-primary:hover {
-  background: #3fcb6e !important;
-  border-color: #3fcb6e !important;
+  background: #63b3ed !important;
+}
+
+.ant-btn-dangerous {
+  background: #e53e3e !important;
+}
+
+.ant-btn-dangerous:hover {
+  background: #f56565 !important;
 }
 
 /* Search Results and Friends List */
@@ -70,7 +115,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  border-bottom: 1px solid #353945;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: #181a20;
 }
 
 .friend-item:last-child {
@@ -84,8 +131,20 @@
 }
 
 .friend-username {
-  color: #f1f1f1;
-  font-size: 0.95rem;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.friend-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.friend-requests-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
 }
 
 /* Friend Request Badge */
@@ -142,6 +201,10 @@
 @media (max-width: 1200px) {
   .friends-main {
     margin-left: 64px;
+  }
+  
+  .friends-content {
+    padding: 0 16px;
   }
 }
 
