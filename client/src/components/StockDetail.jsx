@@ -83,6 +83,7 @@ const StockDetail = () => {
                             <li onClick={() => navigate('/')}>Portfolio</li>
                             <li onClick={() => navigate('/stats')}>Stock Statistics</li>
                             <li onClick={() => navigate('/competitions')}>Competitions</li>
+                            <li onClick={() => navigate('/friends')}>Friends</li>
                         </ul>
                     </nav>
                 </aside>
@@ -133,6 +134,7 @@ const StockDetail = () => {
                             <li onClick={() => navigate('/')}>Portfolio</li>
                             <li onClick={() => navigate('/stats')}>Stock Statistics</li>
                             <li onClick={() => navigate('/competitions')}>Competitions</li>
+                            <li onClick={() => navigate('/friends')}>Friends</li>
                         </ul>
                     </nav>
                 </aside>
@@ -183,6 +185,7 @@ const StockDetail = () => {
                             <li onClick={() => navigate('/')}>Portfolio</li>
                             <li onClick={() => navigate('/stats')}>Stock Statistics</li>
                             <li onClick={() => navigate('/competitions')}>Competitions</li>
+                            <li onClick={() => navigate('/friends')}>Friends</li>
                         </ul>
                     </nav>
                 </aside>
@@ -234,6 +237,7 @@ const StockDetail = () => {
                         <li onClick={() => navigate('/')}>Portfolio</li>
                         <li onClick={() => navigate('/stats')}>Stock Statistics</li>
                         <li onClick={() => navigate('/competitions')}>Competitions</li>
+                        <li onClick={() => navigate('/friends')}>Friends</li>
                     </ul>
                 </nav>
             </aside>
