@@ -215,8 +215,26 @@
   }
   .rightbar-section li {
     color: #aaa;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
     font-size: 0.98rem;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+  }
+  .rightbar-section li:hover {
+    background-color: #23262f;
+  }
+  .rightbar-section li:last-child {
+    margin-bottom: 0;
+  }
+  .rightbar-section .text-muted {
+    color: #6c7293;
+    font-style: italic;
+    cursor: default;
+  }
+  .rightbar-section .text-muted:hover {
+    background-color: transparent;
   }
   @media (max-width: 1200px) {
     .dashboard-table-graph, .dashboard-widgets {
