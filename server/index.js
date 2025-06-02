@@ -8,16 +8,12 @@ const axios = require("axios");
 const Holding = require("./Models/stocks");
 const PortfolioSnapshot = require("./Models/portfolioSnapshot");
 const FriendRequest = require('./Models/friendRequest');
-const userRoutes = require('./routes/userRoutes');
+const User = require("./Models/user"); 
 const Competition = require('./Models/competition');
 const CompetitionParticipant = require('./Models/competitionParticipant');
 const CompetitionPortfolio = require('./Models/competitionPortfolio');
-require("./Models/competition");
-const CompetitionParticipant = require("./Models/competitionParticipant");
-const CompetitionPortfolio = require("./Models/competitionPortfolio");
-require("dotenv").config();
-// const config = require('./config');
-// const authRoutes = require('./routes/auth');
+const profilePictureRoutes = require('./routes/profilePictureRoutes');
+require('dotenv').config();
 
 const app = express();
 
@@ -26,7 +22,9 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
-app.use('/api/user', userRoutes);
+// app.use('/api/user', userRoutes);
+app.use('/api/profile-picture', profilePictureRoutes);
+
 
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
@@ -115,42 +113,6 @@ mongoose
   .connect(MONGODB_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
-
-// User Schema
-const userSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  balance: {
-    type: Number,
-    default: 10000,
-    required: true,
-  },
-    friends: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-const User = mongoose.model("User", userSchema);
 
 // Authentication Routes
 app.post("/api/register", async (req, res) => {
@@ -1306,4 +1268,5 @@ app.get("/api/portfolio/current-value", auth, async (req, res) => {
 // // app.use('/api/auth', authRoutes);
 
 const PORT = process.env.PORT || 8080;
+app.use('/api/profile-picture', profilePictureRoutes);
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

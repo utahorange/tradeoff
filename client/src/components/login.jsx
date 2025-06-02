@@ -17,6 +17,8 @@ const Login = ({ setLoggedInUser }) => {
             const res = await axios.post('http://localhost:8080/api/login', formData);
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('username', res.data.user.username);
+            localStorage.setItem('userId', res.data.user._id);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
             setLoggedInUser(res.data.user.username);
             setMessage('Login successful!');
             navigate('/');

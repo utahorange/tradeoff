@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import PortfolioGraph from "./PortfolioGraph";
-import "./Dashboard.css";
 import { IoMdSettings, IoMdSunny } from "react-icons/io";
 import StockSearch from "./StockSearch";
 import Navbar from "./Navbar";
@@ -61,68 +60,70 @@ const Dashboard = ({ setLoggedInUser }) => {
     fetchData();
   }, []);
 
-  return (
-    <div className="dashboard-root">
-      <Navbar />
-      <main className="dashboard-main">
-        {/* Top Bar */}
-        <header className="dashboard-topbar">
-          <div className="search-container">
-            <StockSearch />
-          </div>
-          <div className="dashboard-topbar-icons">
-            <CgLogOut className="logout-icon" onClick={handleLogout} />
-            <FaUserCircle
-              className="profile-icon"
-              onClick={() => {
-                navigate("/profile");
-              }}
-            />
-          </div>
-        </header>
-        <div className="dashboard-summary">
-          <div className="balance-section">
-            <h2>My Stock Holdings</h2>
-          </div>
-          <div className="holdings-section">
-            <h2>Balance: ${balance.toFixed(2)}</h2>
-          </div>
-        </div>
-        {/* Holdings Cards Scroll */}
-        {loading ? (
-          <p>Loading...</p>
-        ) : error ? (
-          <p style={{ color: "red" }}>{error}</p>
-        ) : holdings.length === 0 ? (
-          <div className="dashboard-holdings-scroll">
-            <div className="dashboard-holding-card">
-              <div className="holding-symbol">No Stocks Yet</div>
-              <div className="holding-quantity">
-                Start investing by buying your first stock!
-              </div>
+    return (
+      <div className="dashboard-root">
+        <Navbar />
+        <main className="dashboard-main">
+          {/* Top Bar */}
+          <header className="dashboard-topbar">
+            <div className="search-container">
+              <StockSearch />
+            </div>
+            <div className="dashboard-topbar-icons">
+              <CgLogOut 
+                className="logout-icon" 
+                onClick={handleLogout}
+              />
+              <h2 className="username">{localStorage.getItem('username')}</h2>
+              <FaUserCircle 
+                className="profile-icon" 
+                onClick={() => {
+                  navigate('/profile');
+                }}
+              />
+            </div>
+          </header>
+          <div className="dashboard-summary">
+            <div className="balance-section">
+              <h2>My Stock Holdings</h2>
+            </div>
+            <div className="holdings-section">
+              <h2>Balance: ${balance.toFixed(2)}</h2>
             </div>
           </div>
-        ) : (
-          <div className="dashboard-holdings-scroll">
-            {holdings.map((h) => (
-              <div
-                className="dashboard-holding-card"
-                key={h._id}
-                onClick={() => navigate(`/stock/${h.stockSymbol}`)}
-              >
-                <div className="holding-symbol">{h.stockSymbol}</div>
-                <div className="holding-quantity">Qty: {h.stockQuantity}</div>
-              </div>
-            ))}
+          {/* Holdings Cards Scroll */}
+          {loading ? (
+            <p>Loading...</p>
+          ) : error ? (
+            <p style={{ color: 'red' }}>{error}</p>
+          ) : holdings.length === 0 ? (
+            <div className="dashboard-holdings-scroll">
+                <div className="dashboard-holding-card">
+                  <div className="holding-symbol">No Stocks Yet</div>
+                  <div className="holding-quantity">Start investing by buying your first stock!</div>
+                </div>
+            </div>
+          ) : (
+            <div className="dashboard-holdings-scroll">
+              {holdings.map((h) => (
+                <div 
+                  className="dashboard-holding-card" 
+                  key={h._id}
+                  onClick={() => navigate(`/stock/${h.stockSymbol}`)}
+                >
+                  <div className="holding-symbol">{h.stockSymbol}</div>
+                  <div className="holding-quantity">Qty: {h.stockQuantity}</div>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Portfolio Value Over Time Graph - Centered and Large */}
+          <div className="dashboard-portfolio-graph-center">
+            <PortfolioGraph hasHoldings={holdings.length > 0} />
           </div>
-        )}
-        {/* Portfolio Value Over Time Graph - Centered and Large */}
-        <div className="dashboard-portfolio-graph-center">
-          <PortfolioGraph hasHoldings={holdings.length > 0} />
-        </div>
-      </main>
-      {/* Right Sidebar */}
-      <aside className="dashboard-rightbar">
+        </main>
+        {/* Right Sidebar */}
+        <aside className="dashboard-rightbar">
         <div className="rightbar-section">
           <h4>Friend Requests</h4>
           <ul>
@@ -150,8 +151,8 @@ const Dashboard = ({ setLoggedInUser }) => {
           </ul>
         </div>
       </aside>
-    </div>
-  );
+      </div>
+    );
 };
 
 const Home = ({ setLoggedInUser }) => {

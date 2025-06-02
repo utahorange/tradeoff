@@ -1,16 +1,10 @@
 .stock-search-container {
     position: relative;
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.search-controls {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    margin-bottom: 16px;
-    height: 42px;
+    max-width: 800px;
+    padding: 1.5rem 24px;
+    z-index: 1003;
+    background-color: transparent;
 }
 
 .search-form {
@@ -42,9 +36,9 @@
 
 .filter-container {
     display: flex;
-    gap: 8px;
-    flex: 1;
-    height: 100%;
+    gap: 12px;
+    margin-top: 16px;
+    justify-content: flex-start;
 }
 
 .filter-select {
