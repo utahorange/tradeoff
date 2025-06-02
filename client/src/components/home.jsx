@@ -14,6 +14,8 @@ const Home = ({setLoggedInUser}) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [balance, setBalance] = useState(0);
+    const [friendRequests, setFriendRequests] = useState([]);
+    const [friends, setFriends] = useState([]);
     
     const handleLogout = () => {
       localStorage.removeItem('token');
@@ -22,29 +24,36 @@ const Home = ({setLoggedInUser}) => {
     };
 
     useEffect(() => {
-        const fetchHoldings = async () => {
+        const fetchData = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const res = await axios.get('http://localhost:8080/api/holdings', {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-                setHoldings(res.data.holdings);
-                const balanceRes = await axios.get('http://localhost:8080/api/balance', {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
+                const [holdingsRes, balanceRes, friendRequestsRes, friendsRes] = await Promise.all([
+                    axios.get('http://localhost:8080/api/holdings', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }),
+                    axios.get('http://localhost:8080/api/balance', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }),
+                    axios.get('http://localhost:8080/api/friends/requests', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }),
+                    axios.get('http://localhost:8080/api/friends', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                ]);
+                
+                setHoldings(holdingsRes.data.holdings);
                 setBalance(balanceRes.data.balance);
+                setFriendRequests(friendRequestsRes.data.requests || []);
+                setFriends(friendsRes.data.friends || []);
             } catch (err) {
-                console.error('Error fetching holdings:', err);
-                setError('Failed to fetch holdings');
+                console.error('Error fetching data:', err);
+                setError('Failed to fetch data');
             } finally {
                 setLoading(false);
             }
         };
-        fetchHoldings();
+        fetchData();
     }, []);
 
     return (
@@ -111,21 +120,29 @@ const Home = ({setLoggedInUser}) => {
         {/* Right Sidebar */}
         <aside className="dashboard-rightbar">
           <div className="rightbar-section">
-            <h4>Notifications</h4>
+            <h4>Friend Requests</h4>
             <ul>
-              <li>You have a new friend request</li>
-              <li>New user registered</li>
-              <li>Random Notification</li>
+              {friendRequests.length === 0 ? (
+                <li className="text-muted">No pending friend requests</li>
+              ) : (
+                friendRequests.map(request => (
+                  <li key={request._id}>
+                    {request.sender.username} wants to be friends
+                  </li>
+                ))
+              )}
             </ul>
           </div>
           <div className="rightbar-section">
             <h4>Friends</h4>
             <ul>
-              <li>Spandaddy</li>
-              <li>JZ Washington</li>
-              <li>teshy</li>
-              <li>taiGoat</li>
-              <li>deSchlong</li>
+              {friends.length === 0 ? (
+                <li className="text-muted">No friends added yet</li>
+              ) : (
+                friends.map(friend => (
+                  <li key={friend._id}>{friend.username}</li>
+                ))
+              )}
             </ul>
           </div>
         </aside>
