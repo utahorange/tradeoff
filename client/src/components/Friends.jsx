@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+    import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, Input, Button, Avatar, Badge, message } from 'antd';
 import { UserOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
@@ -119,12 +119,12 @@ const Friends = () => {
         <div className="friends-container">
             <Navbar />
             <main className="friends-main">
-                <div className="p-6 max-w-4xl mx-auto">
-                    <h1 className="text-2xl font-bold mb-6 text-white">Friends</h1>
+                <div className="friends-content">
+                    <h1 className="friends-title">Friends</h1>
                     
                     {/* Search Section */}
-                    <Card title="Find Friends" className="mb-6">
-                        <div className="flex gap-2">
+                    <Card title="Find Friends" className="friends-card">
+                        <div className="search-container">
                             <Input
                                 placeholder="Search users by username"
                                 value={searchTerm}
@@ -137,7 +137,7 @@ const Friends = () => {
                         </div>
                         
                         {searchResults.length > 0 && (
-                            <div className="mt-4">
+                            <div className="search-results">
                                 {searchResults.map(user => (
                                     <div key={user._id} className="friend-item">
                                         <div className="friend-info">
@@ -160,12 +160,15 @@ const Friends = () => {
                     {friendRequests.length > 0 && (
                         <Card 
                             title={
-                                <div className="flex items-center gap-2 text-white">
+                                <div className="friend-requests-header">
                                     Friend Requests
-                                    <Badge count={friendRequests.length} />
+                                    <Badge 
+                                        count={friendRequests.length} 
+                                        style={{ boxShadow: 'none', background: 'none'}}
+                                    />
                                 </div>
                             } 
-                            className="mb-6"
+                            className="friends-card"
                         >
                             {friendRequests.map(request => (
                                 <div key={request._id} className="friend-item">
@@ -195,7 +198,7 @@ const Friends = () => {
                     )}
 
                     {/* Friends List Section */}
-                    <Card title={<span className="text-white">My Friends ({friends.length})</span>}>
+                    <Card title="My Friends" className="friends-card">
                         {friends.length === 0 ? (
                             <div className="empty-state">You haven't added any friends yet</div>
                         ) : (

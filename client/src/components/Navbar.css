@@ -18,6 +18,11 @@
   color: #fff;
   padding: 0 24px 24px 24px;
   cursor: pointer;
+  transition: color 0.2s;
+}
+
+.sidebar-logo:hover {
+  color: #4299e1;
 }
 
 .sidebar-nav {
