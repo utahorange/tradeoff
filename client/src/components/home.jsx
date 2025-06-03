@@ -71,13 +71,13 @@ const Home = ({setLoggedInUser}) => {
                 className="logout-icon" 
                 onClick={handleLogout}
               />
-              <h2 className="username">{localStorage.getItem('username')}</h2>
-              <FaUserCircle 
-                className="profile-icon" 
-                onClick={() => {
-                  navigate('/profile');
-                }}
-              />
+              <div className="user-profile-container"
+              onClick={() => {
+                navigate('/profile');
+              }}>
+                <FaUserCircle className="profile-icon"/>
+                <h2 className="username">{localStorage.getItem('username')}</h2>
+              </div>
             </div>
           </header>
           <div className="dashboard-summary">

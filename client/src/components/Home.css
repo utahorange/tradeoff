@@ -81,20 +81,32 @@
     max-width: 600px;
     margin-right: 24px;
   }
+
+  .user-profile-container {
+    display: flex;
+    align-items: center;
+    gap: 0rem; /* Reduce the gap for closer spacing */
+  }
+  
+  .user-profile-container .username {
+    margin: 0; /* Remove default h2 margin */
+    font-size: 1.1rem; /* Optional: adjust size for better fit */
+    font-weight: 1000;   /* Optional: adjust weight for style */
+  }
+
   .dashboard-topbar-icons {
     display: flex;
     align-items: center;
-    gap: 18px;
-  }
-  .dashboard-topbar-icons svg {
+    gap: 5px;
     margin-left: 18px;
-    font-size: 1.2rem;
-    gap: 18px;
+    font-size: 1.3rem;
+    gap: 30px;
     cursor: pointer;
     transition: color 0.2s;
   }
   
-  .dashboard-topbar-icons .profile-icon:hover,
+  .user-profile-container:hover .username,
+  .user-profile-container:hover .profile-icon,
   .dashboard-topbar-icons .logout-icon:hover {
     color: #007bff;
     transition: color 0.2s;
