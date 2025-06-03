@@ -187,41 +187,43 @@ const StockSearch = () => {
     return true;
   });
 
-  return (
-    <div className="stock-search-container" ref={dropdownRef}>
-      <div className="search-form">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search stocks..."
-          className="search-input"
-        />
-        {loading && <div className="loading-indicator">Searching...</div>}
-      </div>
+    return (
+        <div className="stock-search-container" ref={dropdownRef}>
+            <div className="search-controls">
+                <div className="search-form">
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search stocks..."
+                        className="search-input"
+                    />
+                    {loading && <div className="loading-indicator">Searching...</div>}
+                </div>
 
-      <div className="filter-container">
-        <select
-          value={growthFilter}
-          onChange={(e) => setGrowthFilter(e.target.value)}
-          className="filter-select"
-        >
-          <option value="any">Any Change</option>
-          <option value="growing">Growing</option>
-          <option value="shrinking">Shrinking</option>
-        </select>
-        <select
-          value={priceRangeFilter}
-          onChange={(e) => setPriceRangeFilter(e.target.value)}
-          className="filter-select"
-        >
-          <option value="any">Any Price</option>
-          <option value="under10">Under $10</option>
-          <option value="10to50">$10 - $50</option>
-          <option value="50to100">$50 - $100</option>
-          <option value="over100">Over $100</option>
-        </select>
-      </div>
+                <div className="filter-container">
+                    <select
+                        value={growthFilter}
+                        onChange={(e) => setGrowthFilter(e.target.value)}
+                        className="filter-select"
+                    >
+                        <option value="any">Any Change</option>
+                        <option value="growing">Growing</option>
+                        <option value="shrinking">Shrinking</option>
+                    </select>
+                    <select
+                        value={priceRangeFilter}
+                        onChange={(e) => setPriceRangeFilter(e.target.value)}
+                        className="filter-select"
+                    >
+                        <option value="any">Any Price</option>
+                        <option value="under10">Under $10</option>
+                        <option value="10to50">$10 - $50</option>
+                        <option value="50to100">$50 - $100</option>
+                        <option value="over100">Over $100</option>
+                    </select>
+                </div>
+            </div>
 
       {isDropdownVisible && filteredResults.length > 0 && (
         <div className="search-results">

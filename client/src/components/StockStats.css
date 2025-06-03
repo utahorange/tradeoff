@@ -32,116 +32,112 @@
 }
 
 .portfolio-summary {
-    margin-top: 2rem;
-    margin-bottom: 1.5rem;
+    margin: 24px 0;
+}
+
+.portfolio-summary h2 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    text-align: left;
 }
 
 .summary-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
 }
 
 .summary-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: #23262f;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .summary-card h3 {
-    margin: 0;
-    color: #666;
+    color: #aaa;
     font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    margin-bottom: 8px;
 }
 
 .summary-card .value {
-    margin: 0.5rem 0 0;
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: #1a1a1a;
+    color: #fff;
+    font-size: 1.7rem;
+    font-weight: bold;
+    margin: 0;
 }
 
 .holdings-table {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1.5rem;
-    overflow-x: hidden;
+    background: #23262f;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 24px 0;
+    overflow-x: auto;
 }
 
-.holdings-table h2 {
-    padding: 1.5rem;
-    margin: 0;
-    border-bottom: 1px solid #eee;
-}
-
-table {
+.holdings-table table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
-th, td {
-    padding: 1rem 1.5rem;
+.holdings-table th {
     text-align: left;
-    border-bottom: 1px solid #eee;
+    padding: 12px 16px;
+    color: #aaa;
+    font-weight: 500;
+    border-bottom: 1px solid #353945;
 }
 
-th {
-    background: #f8f9fa;
-    font-weight: 600;
-    color: #666;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.holdings-table td {
+    padding: 16px;
+    color: #fff;
+    border-bottom: 1px solid #353945;
 }
 
-td {
-    color: #1a1a1a;
+.holdings-table tr:last-child td {
+    border-bottom: none;
 }
 
-.symbol {
-    font-weight: 600;
+.holdings-table .symbol {
+    font-weight: bold;
+    color: #4299e1;
 }
 
 .positive {
-    color: #00c853;
+    color: #4ade80;
 }
 
 .negative {
-    color: #ff3d00;
+    color: #ef4444;
 }
 
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-top: 0.5rem;
-    margin-bottom: 2rem;
+    gap: 16px;
+    margin: 24px 0;
 }
 
 .stat-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: #23262f;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .stat-card h3 {
-    margin: 0;
-    color: #666;
+    color: #aaa;
     font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    margin-bottom: 8px;
 }
 
 .stat-card p {
-    margin: 0.5rem 0 0;
     font-size: 1.5rem;
     font-weight: 600;
+    margin: 0;
 }
 
 .loading-container {
@@ -162,27 +158,24 @@ td {
 .loading-content {
     background: #23262f;
     padding: 3rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     text-align: center;
-    max-width: 400px;
-    width: 100%;
 }
 
 .loading-spinner {
     width: 50px;
     height: 50px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #3498db;
+    border: 3px solid #353945;
+    border-top: 3px solid #4299e1;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto 1.5rem;
 }
 
 .loading-text {
-    color: white;
+    color: #fff;
     font-size: 1.2rem;
-    font-weight: 500;
     margin: 0;
 }
 
@@ -192,35 +185,32 @@ td {
 }
 
 .error-message {
-    color: #ff3d00;
+    color: #ef4444;
     text-align: center;
     padding: 2rem;
-    background: #fff3f0;
-    border-radius: 8px;
+    background: #23262f;
+    border-radius: 12px;
     margin: 2rem 0;
 }
 
-.empty-portfolio {
+.empty-portfolio-message {
     text-align: center;
+    color: #aaa;
     padding: 3rem;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.empty-portfolio h2 {
-    margin: 0 0 1rem;
-    color: #1a1a1a;
-}
-
-.empty-portfolio p {
-    margin: 0;
-    color: #666;
 }
 
 /* Responsive Design */
 @media (max-width: 1200px) {
     .dashboard-main {
         margin-left: 64px;
+    }
+    
+    .summary-cards, .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .holdings-table {
+        margin: 16px 0;
+        padding: 16px;
     }
 } 

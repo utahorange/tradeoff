@@ -274,6 +274,92 @@ app.get("/api/competitions", auth, async (req, res) => {
   }
 });
 
+// Get competitions the current user is participating in
+app.get("/api/competitions/my-games", auth, async (req, res) => {
+  try {
+    // Find all participant records for this user
+    const participantRecords = await CompetitionParticipant.find({
+      userId: req.user._id,
+    });
+    const competitionIds = participantRecords.map((p) => p.competitionId);
+    // Find competitions by these IDs
+    const competitions = await Competition.find({
+      _id: { $in: competitionIds },
+    });
+    // Format for frontend
+    const formatted = competitions.map((c) => ({
+      id: c._id,
+      name: c.name,
+      host: c.host,
+      details: c.details,
+      startDate: c.startDate
+        ? new Date(c.startDate).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "",
+      endDate: c.endDate
+        ? new Date(c.endDate).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "No End",
+      players: c.players,
+      startingCash: c.startingCash,
+      locked: c.locked,
+      visibility: c.visibility,
+    }));
+    res.json(formatted);
+  } catch (error) {
+    console.error("Error fetching my games:", error);
+    res.status(500).json({ message: "Error fetching my games" });
+  }
+});
+
+// Get competitions the current user can join (not already joined)
+app.get("/api/competitions/available", auth, async (req, res) => {
+  try {
+    // Find all participant records for this user
+    const participantRecords = await CompetitionParticipant.find({
+      userId: req.user._id,
+    });
+    const joinedIds = participantRecords.map((p) => p.competitionId.toString());
+    // Find competitions not joined by this user
+    const competitions = await Competition.find({ _id: { $nin: joinedIds } });
+    // Format for frontend
+    const formatted = competitions.map((c) => ({
+      id: c._id,
+      name: c.name,
+      host: c.host,
+      details: c.details,
+      startDate: c.startDate
+        ? new Date(c.startDate).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "",
+      endDate: c.endDate
+        ? new Date(c.endDate).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "No End",
+      players: c.players,
+      startingCash: c.startingCash,
+      locked: c.locked,
+      visibility: c.visibility,
+    }));
+    res.json(formatted);
+  } catch (error) {
+    console.error("Error fetching available games:", error);
+    res.status(500).json({ message: "Error fetching available games" });
+  }
+});
+
 // Get competition details
 app.get("/api/competitions/:competitionId", auth, async (req, res) => {
   try {
@@ -788,6 +874,38 @@ app.get("/api/portfolio/current-value", auth, async (req, res) => {
     res.status(500).json({ message: "Error fetching current portfolio value" });
   }
 });
+
+// Get leaderboard for a competition
+app.get(
+  "/api/competitions/:competitionId/leaderboard",
+  auth,
+  async (req, res) => {
+    try {
+      const { competitionId } = req.params;
+      // Find all participants for this competition
+      const participants = await CompetitionParticipant.find({
+        competitionId,
+      }).populate("userId", "username");
+      // Sort by accountValue descending
+      const sorted = participants.sort(
+        (a, b) => b.accountValue - a.accountValue
+      );
+      // Format for frontend
+      const leaderboard = sorted.map((p, idx) => ({
+        rank: idx + 1,
+        username: p.userId.username,
+        accountValue: p.accountValue,
+        todayChange: p.todayChange,
+        overallChange: p.overallChange,
+        isCurrentUser: p.userId._id.toString() === req.user._id.toString(),
+      }));
+      res.json(leaderboard);
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      res.status(500).json({ message: "Error fetching leaderboard" });
+    }
+  }
+);
 
 // // app.use('/api/auth', authRoutes);
 
