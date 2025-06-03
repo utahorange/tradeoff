@@ -16,6 +16,10 @@ const StockDetail = () => {
     const [quantity, setQuantity] = useState(1);
     const [buyError, setBuyError] = useState('');
     const [buySuccess, setBuySuccess] = useState('');
+    const [userHoldings, setUserHoldings] = useState(0);
+    const [sellQuantity, setSellQuantity] = useState(1);
+    const [sellError, setSellError] = useState('');
+    const [sellSuccess, setSellSuccess] = useState('');
 
     useEffect(() => {
         const fetchStockData = async () => {
@@ -39,6 +43,31 @@ const StockDetail = () => {
         fetchStockData();
     }, [symbol]);
 
+    useEffect(() => {
+        const fetchUserHoldings = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.get('http://localhost:8080/api/holdings', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                const holdings = response.data.holdings;
+                const stockHolding = holdings.reduce((total, holding) => {
+                    if (holding.stockSymbol === symbol) {
+                        return total + holding.stockQuantity;
+                    }
+                    return total;
+                }, 0);
+                setUserHoldings(stockHolding);
+            } catch (err) {
+                console.error('Error fetching holdings:', err);
+            }
+        };
+
+        fetchUserHoldings();
+    }, [symbol]);
+
     const handleBuyStock = async (e) => {
         e.preventDefault();
         setBuyError('');
@@ -58,12 +87,55 @@ const StockDetail = () => {
             });
 
             setBuySuccess('Successfully bought stocks!');
-            //reroute to the home page
             navigate('/');
             setQuantity(1);
         } catch (err) {
             console.error('Error buying stock:', err);
             setBuyError(err.response?.data?.message || 'Failed to buy stock');
+            // Auto-dismiss buy error after 2 seconds
+            setTimeout(() => {
+                setBuyError('');
+            }, 2000);
+        }
+    };
+
+    const handleSellStock = async (e) => {
+        e.preventDefault();
+        setSellError('');
+        setSellSuccess('');
+
+        if (sellQuantity > userHoldings) {
+            setSellError(`Insufficient shares. You only have ${userHoldings} shares available.`);
+            // Auto-dismiss sell error after 2 seconds
+            setTimeout(() => {
+                setSellError('');
+            }, 2000);
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post('http://localhost:8080/api/holdings', {
+                stockSymbol: symbol,
+                stockPrice: stockData.price,
+                stockQuantity: sellQuantity,
+                action: 'sell'
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            setSellSuccess('Successfully sold stocks!');
+            navigate('/');
+            setSellQuantity(1);
+        } catch (err) {
+            console.error('Error selling stock:', err);
+            setSellError(err.response?.data?.message || 'Failed to sell stock');
+            // Auto-dismiss sell error after 2 seconds
+            setTimeout(() => {
+                setSellError('');
+            }, 2000);
         }
     };
 
@@ -177,26 +249,93 @@ const StockDetail = () => {
                         </div>
                     </div>
 
-                    <div className="buy-stock-section">
-                        <h3>Buy {stockData.symbol}</h3>
-                        <form onSubmit={handleBuyStock}>
-                            <div className="form-group">
-                                <label htmlFor="quantity">Quantity:</label>
-                                <input
-                                    type="number"
-                                    id="quantity"
-                                    min="1"
-                                    value={quantity}
-                                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                                />
-                            </div>
-                            <div className="total-cost">
-                                Total Cost: ${totalCost}
-                            </div>
-                            {buyError && <div className="error-message">{buyError}</div>}
-                            {buySuccess && <div className="success-message">{buySuccess}</div>}
-                            <button type="submit" className="buy-button">Buy Stock</button>
-                        </form>
+                    <div className="trading-sections">
+                        <div className="buy-stock-section">
+                            <h3>Buy {stockData.symbol}</h3>
+                            <form onSubmit={handleBuyStock}>
+                                <div className="form-group">
+                                    <label htmlFor="buyQuantity">Quantity:</label>
+                                    <input
+                                        type="number"
+                                        id="buyQuantity"
+                                        min="1"
+                                        value={quantity}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === '') {
+                                                setQuantity('');
+                                            } else {
+                                                const num = parseInt(val);
+                                                if (!isNaN(num)) {
+                                                    setQuantity(num);
+                                                }
+                                            }
+                                        }}
+                                        onBlur={(e) => {
+                                            if (quantity === '' || quantity < 1) {
+                                                setQuantity(1);
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <div className="total-cost">
+                                    Total Cost: ${(stockData.price * quantity).toLocaleString('en-US', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })}
+                                </div>
+                                {buyError && <div className="error-message">{buyError}</div>}
+                                {buySuccess && <div className="success-message">{buySuccess}</div>}
+                                <button type="submit" className="buy-button">Buy Stock</button>
+                            </form>
+                        </div>
+
+                        <div className="sell-stock-section">
+                            <h3>Sell {stockData.symbol}</h3>
+                            <form onSubmit={handleSellStock}>
+                                <div className="form-group">
+                                    <label htmlFor="sellQuantity">Quantity (Own: {userHoldings}):</label>
+                                    <input
+                                        type="number"
+                                        id="sellQuantity"
+                                        min="1"
+                                        value={sellQuantity}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === '') {
+                                                setSellQuantity('');
+                                            } else {
+                                                const num = parseInt(val);
+                                                if (!isNaN(num)) {
+                                                    setSellQuantity(num);
+                                                }
+                                            }
+                                        }}
+                                        onBlur={(e) => {
+                                            if (sellQuantity === '' || sellQuantity < 1) {
+                                                setSellQuantity(1);
+                                            }
+                                        }}
+                                        disabled={userHoldings === 0}
+                                    />
+                                </div>
+                                <div className="total-value">
+                                    Total Value: ${(stockData.price * sellQuantity).toLocaleString('en-US', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })}
+                                </div>
+                                {sellError && <div className="error-message">{sellError}</div>}
+                                {sellSuccess && <div className="success-message">{sellSuccess}</div>}
+                                <button 
+                                    type="submit" 
+                                    className="sell-button"
+                                    disabled={userHoldings === 0}
+                                >
+                                    {userHoldings === 0 ? 'No Shares to Sell' : 'Sell Stock'}
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </main>
