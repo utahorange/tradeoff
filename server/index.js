@@ -37,17 +37,22 @@ const logDatabaseQuery = (operation, collection, details = '') => {
     console.log(`[${timestamp}] Database ${operation} on ${collection} ${details}`);
 };
 
-console.log("hello");
-
 // general utility function to make GET requests to Finnhub
 async function finnhubGet(endpoint, params = {}) {
   try {
+    // Log every Finnhub API call
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] FINNHUB API CALL: ${endpoint} with params:`, JSON.stringify(params));
+    
     const response = await axios.get(`${FINNHUB_BASE_URL}/${endpoint}`, {
       params: { ...params, token: FINNHUB_API_KEY },
     });
+    
+    console.log(`[${timestamp}] FINNHUB API RESPONSE: ${endpoint} - SUCCESS`);
     return response.data;
   } catch (err) {
-    console.error(`Error calling ${endpoint}:`, err.message);
+    const timestamp = new Date().toISOString();
+    console.error(`[${timestamp}] FINNHUB API ERROR: ${endpoint} - ${err.message}`);
     throw err;
   }
 }
