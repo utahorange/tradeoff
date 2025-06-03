@@ -414,4 +414,15 @@
     margin: 0;
     font-size: 1.5rem;
     color: #fff;
+  }
+
+  .friend-item {
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+
+  .friend-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
   } 
