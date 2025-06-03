@@ -32,18 +32,67 @@ const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
 
 console.log(`Finnhub API Key: ${FINNHUB_API_KEY}`);
 
-// general utility function to make GET requests to Finnhub
+// Add this logging function near the top of the file, after the imports
+const logDatabaseQuery = (operation, collection, details = '') => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Database ${operation} on ${collection} ${details}`);
+};
+
+// Add this after your imports and before the finnhubGet function
+const stockPriceCache = new Map();
+const CACHE_DURATION = 300000; // 5 minutes in milliseconds
+
+// Enhanced finnhubGet function with caching
 async function finnhubGet(endpoint, params = {}) {
   try {
+    // Create cache key from endpoint and params
+    const cacheKey = `${endpoint}_${JSON.stringify(params)}`;
+    
+    // Check if we have cached data
+    const cachedData = stockPriceCache.get(cacheKey);
+    if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
+      const timestamp = new Date().toISOString();
+      console.log(`[${timestamp}] FINNHUB CACHE HIT: ${endpoint} with params:`, JSON.stringify(params));
+      return cachedData.data;
+    }
+    
+    // Log every Finnhub API call
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] FINNHUB API CALL: ${endpoint} with params:`, JSON.stringify(params));
+    
     const response = await axios.get(`${FINNHUB_BASE_URL}/${endpoint}`, {
       params: { ...params, token: FINNHUB_API_KEY },
     });
+    
+    console.log(`[${timestamp}] FINNHUB API RESPONSE: ${endpoint} - SUCCESS`);
+    
+    // Store in cache
+    stockPriceCache.set(cacheKey, {
+      data: response.data,
+      timestamp: Date.now()
+    });
+    
     return response.data;
   } catch (err) {
-    console.error(`Error calling ${endpoint}:`, err.message);
+    const timestamp = new Date().toISOString();
+    console.error(`[${timestamp}] FINNHUB API ERROR: ${endpoint} - ${err.message}`);
     throw err;
   }
 }
+
+// Add cache cleanup function to prevent memory leaks
+const cleanupCache = () => {
+  const now = Date.now();
+  for (const [key, value] of stockPriceCache.entries()) {
+    if (now - value.timestamp > CACHE_DURATION) {
+      stockPriceCache.delete(key);
+      console.log(`Cache cleaned up: ${key}`);
+    }
+  }
+};
+
+// Clean up cache every 10 minutes
+setInterval(cleanupCache, 600000);
 
 // get quote for present time
 app.get("/api/quote/:symbol", async (req, res) => {
@@ -671,6 +720,7 @@ app.get("/api/friends", auth, async (req, res) => {
 app.post("/api/holdings", auth, async (req, res) => {
   try {
     const { stockSymbol, stockPrice, stockQuantity, action } = req.body;
+    logDatabaseQuery('READ', 'User', `Finding user by ID: ${req.user._id}`);
     const user = await User.findById(req.user._id);
 
     if (!user) {
@@ -684,6 +734,7 @@ app.post("/api/holdings", auth, async (req, res) => {
         return res.status(400).json({ message: "Insufficient funds" });
       }
       user.balance -= transactionAmount;
+      logDatabaseQuery('CREATE', 'Holding', `Creating new holding for ${stockSymbol}`);
       const holding = new Holding({
         user: req.user._id,
         stockSymbol,
@@ -692,6 +743,7 @@ app.post("/api/holdings", auth, async (req, res) => {
       });
       await holding.save();
     } else if (action === "sell") {
+      logDatabaseQuery('READ', 'Holding', `Finding holdings for ${stockSymbol}`);
       // Get all holdings for this stock symbol, sorted by purchase date (FIFO)
       const holdings = await Holding.find({
         user: req.user._id,
@@ -710,9 +762,11 @@ app.post("/api/holdings", auth, async (req, res) => {
 
         if (quantityToSell === holding.stockQuantity) {
           // Delete the holding if we're selling all of it
+          logDatabaseQuery('DELETE', 'Holding', `Deleting holding ${holding._id}`);
           await Holding.deleteOne({ _id: holding._id });
         } else {
           // Update the holding with remaining quantity
+          logDatabaseQuery('UPDATE', 'Holding', `Updating quantity for holding ${holding._id}`);
           holding.stockQuantity -= quantityToSell;
           await holding.save();
         }
@@ -727,15 +781,18 @@ app.post("/api/holdings", auth, async (req, res) => {
       user.balance += totalSaleAmount;
     }
 
+    logDatabaseQuery('UPDATE', 'User', `Updating balance for user ${user._id}`);
     await user.save();
 
     // Create a new portfolio snapshot
+    logDatabaseQuery('READ', 'Holding', `Getting all holdings for user ${req.user._id}`);
     const holdings = await Holding.find({ user: req.user._id });
     const totalValue = holdings.reduce(
       (sum, h) => sum + h.stockPrice * h.stockQuantity,
       0
     );
 
+    logDatabaseQuery('CREATE', 'PortfolioSnapshot', `Creating new snapshot for user ${req.user._id}`);
     const snapshot = new PortfolioSnapshot({
       user: req.user._id,
       totalValue,
@@ -903,11 +960,13 @@ app.get("/api/portfolio/current", auth, async (req, res) => {
 app.get("/api/portfolio/current-value", auth, async (req, res) => {
   console.log("Getting current portfolio value");
   try {
+    logDatabaseQuery('READ', 'User', `Finding user by ID: ${req.user._id}`);
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    logDatabaseQuery('READ', 'Holding', `Getting all holdings for user ${req.user._id}`);
     const holdings = await Holding.find({ user: req.user._id });
     let totalValue = 0;
     const holdingsWithCurrentPrice = [];
