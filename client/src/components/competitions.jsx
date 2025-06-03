@@ -286,42 +286,49 @@ const Competitions = () => {
 
       <div className="competitions-content">
         <div className="competitions-card">
-          {/* Header with navigation tabs */}
+          {/* Header with navigation tabs and back button */}
           <div className="competitions-header">
+            <button
+              className="back-button"
+              onClick={() => navigate("/competitions")}
+            >
+              ← Back to Competitions
+            </button>
             <h1>Competitions</h1>
-            <div className="competitions-tabs">
-              <div
-                className={`competitions-tab ${
-                  activeTab === "leaderboard" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("leaderboard")}
-              >
-                Leaderboard
-              </div>
-              <div
-                className={`competitions-tab ${
-                  activeTab === "myGames" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("myGames")}
-              >
-                My Games
-              </div>
-              <div
-                className={`competitions-tab ${
-                  activeTab === "joinGame" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("joinGame")}
-              >
-                Join Game
-              </div>
-              <div
-                className={`competitions-tab ${
-                  activeTab === "createGame" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("createGame")}
-              >
-                Create Game
-              </div>
+            <div style={{ width: 160 }} /> {/* Spacer for alignment */}
+          </div>
+          <div className="competitions-tabs">
+            <div
+              className={`competitions-tab ${
+                activeTab === "leaderboard" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("leaderboard")}
+            >
+              Leaderboard
+            </div>
+            <div
+              className={`competitions-tab ${
+                activeTab === "myGames" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("myGames")}
+            >
+              My Games
+            </div>
+            <div
+              className={`competitions-tab ${
+                activeTab === "joinGame" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("joinGame")}
+            >
+              Join Game
+            </div>
+            <div
+              className={`competitions-tab ${
+                activeTab === "createGame" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("createGame")}
+            >
+              Create Game
             </div>
           </div>
 

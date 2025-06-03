@@ -204,5 +204,3 @@ const StockDetail = () => {
     );
 };
 export default StockDetail;
-
-export default StockDetail; 

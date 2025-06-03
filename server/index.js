@@ -12,17 +12,9 @@ const userRoutes = require("./routes/userRoutes");
 const Competition = require("./Models/competition");
 const CompetitionParticipant = require("./Models/competitionParticipant");
 const CompetitionPortfolio = require("./Models/competitionPortfolio");
-require("./Models/competition");
+const User = require("./Models/user");
+const profilePictureRoutes = require("./routes/profilePictureRoutes");
 require("dotenv").config();
-// const config = require('./config');
-// const authRoutes = require('./routes/auth');
-const FriendRequest = require('./Models/friendRequest');
-const User = require("./Models/user"); 
-const Competition = require('./Models/competition');
-const CompetitionParticipant = require('./Models/competitionParticipant');
-const CompetitionPortfolio = require('./Models/competitionPortfolio');
-const profilePictureRoutes = require('./routes/profilePictureRoutes');
-require('dotenv').config();
 
 const app = express();
 
@@ -33,8 +25,7 @@ app.use(cors());
 // Routes
 app.use("/api/user", userRoutes);
 // app.use('/api/user', userRoutes);
-app.use('/api/profile-picture', profilePictureRoutes);
-
+app.use("/api/profile-picture", profilePictureRoutes);
 
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
@@ -123,44 +114,6 @@ mongoose
   .connect(MONGODB_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
-
-// User Schema
-const userSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  balance: {
-    type: Number,
-    default: 10000,
-    required: true,
-  },
-  friends: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-  ],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-const User = mongoose.model("User", userSchema);
 
 // Authentication Routes
 app.post("/api/register", async (req, res) => {
@@ -916,76 +869,66 @@ app.get(
     }
   }
 );
-        res.json({
-            totalValue: totalValue + user.balance,
-            holdings: holdingsWithCurrentPrice,
-            cashBalance: user.balance
-        });
-    } catch (error) {
-        console.error('Get current portfolio value error:', error);
-        res.status(500).json({ message: 'Error fetching current portfolio value' });
-    }
-});
 
 // Stock search endpoint
-app.get('/api/stocks/search', auth, async (req, res) => {
+app.get("/api/stocks/search", auth, async (req, res) => {
   try {
-      const { query } = req.query;
-      if (!query) {
-          return res.status(400).json({ error: 'Search query is required' });
-      }
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ error: "Search query is required" });
+    }
 
-      const data = await finnhubGet('search', { q: query });
-      
-      // Format the response to include only necessary data
-      const results = data.result.map(stock => ({
-          symbol: stock.symbol,
-          description: stock.description,
-          type: stock.type,
-          primaryExchange: stock.primaryExchange
-      }));
+    const data = await finnhubGet("search", { q: query });
 
-      res.json(results);
+    // Format the response to include only necessary data
+    const results = data.result.map((stock) => ({
+      symbol: stock.symbol,
+      description: stock.description,
+      type: stock.type,
+      primaryExchange: stock.primaryExchange,
+    }));
+
+    res.json(results);
   } catch (error) {
-      console.error('Stock search error:', error);
-      res.status(500).json({ error: 'Failed to search stocks' });
+    console.error("Stock search error:", error);
+    res.status(500).json({ error: "Failed to search stocks" });
   }
 });
 
 // Get detailed stock information
-app.get('/api/stocks/:symbol', auth, async (req, res) => {
+app.get("/api/stocks/:symbol", auth, async (req, res) => {
   try {
-      const { symbol } = req.params;
-      
-      // Get quote data
-      const quoteData = await finnhubGet('quote', { symbol });
-      
-      // Get company profile
-      const profileData = await finnhubGet('stock/profile2', { symbol });
+    const { symbol } = req.params;
 
-      // Combine the data
-      const stockData = {
-          symbol: symbol,
-          description: profileData.name,
-          price: quoteData.c,
-          change: ((quoteData.c - quoteData.pc) / quoteData.pc * 100),
-          marketCap: profileData.marketCapitalization,
-          volume: quoteData.t,
-          weekHigh52: profileData.weekHigh52,
-          weekLow52: profileData.weekLow52,
-          industry: profileData.finnhubIndustry,
-          exchange: profileData.exchange
-      };
+    // Get quote data
+    const quoteData = await finnhubGet("quote", { symbol });
 
-      res.json(stockData);
+    // Get company profile
+    const profileData = await finnhubGet("stock/profile2", { symbol });
+
+    // Combine the data
+    const stockData = {
+      symbol: symbol,
+      description: profileData.name,
+      price: quoteData.c,
+      change: ((quoteData.c - quoteData.pc) / quoteData.pc) * 100,
+      marketCap: profileData.marketCapitalization,
+      volume: quoteData.t,
+      weekHigh52: profileData.weekHigh52,
+      weekLow52: profileData.weekLow52,
+      industry: profileData.finnhubIndustry,
+      exchange: profileData.exchange,
+    };
+
+    res.json(stockData);
   } catch (error) {
-      console.error('Stock detail error:', error);
-      res.status(500).json({ error: 'Failed to fetch stock details' });
+    console.error("Stock detail error:", error);
+    res.status(500).json({ error: "Failed to fetch stock details" });
   }
 });
 
 // // app.use('/api/auth', authRoutes);
 
 const PORT = process.env.PORT || 8080;
-app.use('/api/profile-picture', profilePictureRoutes);
+app.use("/api/profile-picture", profilePictureRoutes);
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
