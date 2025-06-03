@@ -101,6 +101,11 @@ const StockDetail = () => {
         setSellError('');
         setSellSuccess('');
 
+        if (sellQuantity > userHoldings) {
+            setSellError(`Insufficient shares. You only have ${userHoldings} shares available.`);
+            return;
+        }
+
         try {
             const token = localStorage.getItem('token');
             await axios.post('http://localhost:8080/api/holdings', {
@@ -299,8 +304,6 @@ const StockDetail = () => {
                                         onBlur={(e) => {
                                             if (sellQuantity === '' || sellQuantity < 1) {
                                                 setSellQuantity(1);
-                                            } else if (sellQuantity > userHoldings) {
-                                                setSellQuantity(userHoldings);
                                             }
                                         }}
                                         disabled={userHoldings === 0}
