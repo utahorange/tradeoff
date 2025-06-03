@@ -263,7 +263,10 @@ const StockDetail = () => {
                                     />
                                 </div>
                                 <div className="total-cost">
-                                    Total Cost: ${(stockData.price * quantity).toFixed(2)}
+                                    Total Cost: ${(stockData.price * quantity).toLocaleString('en-US', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })}
                                 </div>
                                 {buyError && <div className="error-message">{buyError}</div>}
                                 {buySuccess && <div className="success-message">{buySuccess}</div>}
@@ -304,7 +307,10 @@ const StockDetail = () => {
                                     />
                                 </div>
                                 <div className="total-value">
-                                    Total Value: ${(stockData.price * sellQuantity).toFixed(2)}
+                                    Total Value: ${(stockData.price * sellQuantity).toLocaleString('en-US', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })}
                                 </div>
                                 {sellError && <div className="error-message">{sellError}</div>}
                                 {sellSuccess && <div className="success-message">{sellSuccess}</div>}
