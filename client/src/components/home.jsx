@@ -102,14 +102,17 @@ const Home = ({setLoggedInUser}) => {
             </div>
           ) : (
             <div className="dashboard-holdings-scroll">
-              {holdings.map((h) => (
+              {Object.entries(holdings.reduce((acc, h) => {
+                acc[h.stockSymbol] = (acc[h.stockSymbol] || 0) + h.stockQuantity;
+                return acc;
+              }, {})).map(([symbol, quantity]) => (
                 <div 
                   className="dashboard-holding-card" 
-                  key={h._id}
-                  onClick={() => navigate(`/stock/${h.stockSymbol}`)}
+                  key={symbol}
+                  onClick={() => navigate(`/stock/${symbol}`)}
                 >
-                  <div className="holding-symbol">{h.stockSymbol}</div>
-                  <div className="holding-quantity">Qty: {h.stockQuantity}</div>
+                  <div className="holding-symbol">{symbol}</div>
+                  <div className="holding-quantity">Qty: {quantity}</div>
                 </div>
               ))}
             </div>
