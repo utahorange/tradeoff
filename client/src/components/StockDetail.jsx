@@ -87,12 +87,15 @@ const StockDetail = () => {
             });
 
             setBuySuccess('Successfully bought stocks!');
-            //reroute to the home page
             navigate('/');
             setQuantity(1);
         } catch (err) {
             console.error('Error buying stock:', err);
             setBuyError(err.response?.data?.message || 'Failed to buy stock');
+            // Auto-dismiss buy error after 2 seconds
+            setTimeout(() => {
+                setBuyError('');
+            }, 2000);
         }
     };
 
@@ -103,6 +106,10 @@ const StockDetail = () => {
 
         if (sellQuantity > userHoldings) {
             setSellError(`Insufficient shares. You only have ${userHoldings} shares available.`);
+            // Auto-dismiss sell error after 2 seconds
+            setTimeout(() => {
+                setSellError('');
+            }, 2000);
             return;
         }
 
@@ -125,6 +132,10 @@ const StockDetail = () => {
         } catch (err) {
             console.error('Error selling stock:', err);
             setSellError(err.response?.data?.message || 'Failed to sell stock');
+            // Auto-dismiss sell error after 2 seconds
+            setTimeout(() => {
+                setSellError('');
+            }, 2000);
         }
     };
 
@@ -288,7 +299,6 @@ const StockDetail = () => {
                                         type="number"
                                         id="sellQuantity"
                                         min="1"
-                                        max={userHoldings}
                                         value={sellQuantity}
                                         onChange={(e) => {
                                             const val = e.target.value;
