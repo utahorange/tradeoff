@@ -271,47 +271,52 @@ const StockDetail = () => {
                             </form>
                         </div>
 
-                        {userHoldings > 0 && (
-                            <div className="sell-stock-section">
-                                <h3>Sell {stockData.symbol}</h3>
-                                <form onSubmit={handleSellStock}>
-                                    <div className="form-group">
-                                        <label htmlFor="sellQuantity">Quantity (Own: {userHoldings}):</label>
-                                        <input
-                                            type="number"
-                                            id="sellQuantity"
-                                            min="1"
-                                            max={userHoldings}
-                                            value={sellQuantity}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                if (val === '') {
-                                                    setSellQuantity('');
-                                                } else {
-                                                    const num = parseInt(val);
-                                                    if (!isNaN(num)) {
-                                                        setSellQuantity(num);
-                                                    }
+                        <div className="sell-stock-section">
+                            <h3>Sell {stockData.symbol}</h3>
+                            <form onSubmit={handleSellStock}>
+                                <div className="form-group">
+                                    <label htmlFor="sellQuantity">Quantity (Own: {userHoldings}):</label>
+                                    <input
+                                        type="number"
+                                        id="sellQuantity"
+                                        min="1"
+                                        max={userHoldings}
+                                        value={sellQuantity}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === '') {
+                                                setSellQuantity('');
+                                            } else {
+                                                const num = parseInt(val);
+                                                if (!isNaN(num)) {
+                                                    setSellQuantity(num);
                                                 }
-                                            }}
-                                            onBlur={(e) => {
-                                                if (sellQuantity === '' || sellQuantity < 1) {
-                                                    setSellQuantity(1);
-                                                } else if (sellQuantity > userHoldings) {
-                                                    setSellQuantity(userHoldings);
-                                                }
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="total-value">
-                                        Total Value: ${(stockData.price * sellQuantity).toFixed(2)}
-                                    </div>
-                                    {sellError && <div className="error-message">{sellError}</div>}
-                                    {sellSuccess && <div className="success-message">{sellSuccess}</div>}
-                                    <button type="submit" className="sell-button">Sell Stock</button>
-                                </form>
-                            </div>
-                        )}
+                                            }
+                                        }}
+                                        onBlur={(e) => {
+                                            if (sellQuantity === '' || sellQuantity < 1) {
+                                                setSellQuantity(1);
+                                            } else if (sellQuantity > userHoldings) {
+                                                setSellQuantity(userHoldings);
+                                            }
+                                        }}
+                                        disabled={userHoldings === 0}
+                                    />
+                                </div>
+                                <div className="total-value">
+                                    Total Value: ${(stockData.price * sellQuantity).toFixed(2)}
+                                </div>
+                                {sellError && <div className="error-message">{sellError}</div>}
+                                {sellSuccess && <div className="success-message">{sellSuccess}</div>}
+                                <button 
+                                    type="submit" 
+                                    className="sell-button"
+                                    disabled={userHoldings === 0}
+                                >
+                                    {userHoldings === 0 ? 'No Shares to Sell' : 'Sell Stock'}
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </main>

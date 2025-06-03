@@ -226,6 +226,18 @@
     background-color: #dc2626;
 }
 
+.sell-button:disabled {
+    background-color: #666;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.form-group input:disabled {
+    background-color: #333;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
 .total-value {
     margin: 1rem 0;
     font-size: 1.2rem;
