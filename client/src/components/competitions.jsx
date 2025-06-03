@@ -54,6 +54,9 @@ const Competitions = () => {
 
   const navigate = useNavigate();
 
+  // Get current username from localStorage (fallback to empty string)
+  const currentUsername = localStorage.getItem("username") || "";
+
   // Fetch data when component mounts or active tab changes
   useEffect(() => {
     console.log("Competitions useEffect running");
@@ -277,6 +280,55 @@ const Competitions = () => {
     }
   };
 
+  // Add handleLeaveGame function after handleJoinGame
+  const handleLeaveGame = async (gameId) => {
+    console.log("Attempting to leave game with id:", gameId); // Debug log
+    if (
+      !window.confirm(
+        "Are you sure you want to leave this competition? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Authentication required. Please log in.");
+        setLoading(false);
+        return;
+      }
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      await api.post(`/api/competitions/${gameId}/leave`, {}, config);
+
+      // Refresh my games list
+      const myGamesResponse = await api.get(
+        "/api/competitions/my-games",
+        config
+      );
+      setMyGames(myGamesResponse.data);
+
+      alert("Successfully left the competition!");
+    } catch (err) {
+      console.error("Error leaving competition:", err);
+      setError(
+        err.response?.data?.message ||
+          "Failed to leave competition. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="competitions-container">
       <Navbar />
@@ -403,12 +455,21 @@ const Competitions = () => {
                         <p className="game-card-host">by {game.host}</p>
                         <p className="mt-2">{game.details}</p>
                       </div>
-                      <button
-                        className="button-secondary"
-                        onClick={() => navigate(`/competitions/${game.id}`)}
-                      >
-                        Details
-                      </button>
+                      <div className="game-card-actions">
+                        <button
+                          className="button-secondary"
+                          onClick={() => navigate(`/competitions/${game.id}`)}
+                        >
+                          Details
+                        </button>
+                        {/* Always show Leave button for all games */}
+                        <button
+                          className="button-danger"
+                          onClick={() => handleLeaveGame(game.id)}
+                        >
+                          Leave
+                        </button>
+                      </div>
                     </div>
                     <div className="game-card-details">
                       <div className="game-detail">

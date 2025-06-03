@@ -33,9 +33,11 @@ const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
 console.log(`Finnhub API Key: ${FINNHUB_API_KEY}`);
 
 // Add this logging function near the top of the file, after the imports
-const logDatabaseQuery = (operation, collection, details = '') => {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] Database ${operation} on ${collection} ${details}`);
+const logDatabaseQuery = (operation, collection, details = "") => {
+  const timestamp = new Date().toISOString();
+  console.log(
+    `[${timestamp}] Database ${operation} on ${collection} ${details}`
+  );
 };
 
 // Add this after your imports and before the finnhubGet function
@@ -47,35 +49,43 @@ async function finnhubGet(endpoint, params = {}) {
   try {
     // Create cache key from endpoint and params
     const cacheKey = `${endpoint}_${JSON.stringify(params)}`;
-    
+
     // Check if we have cached data
     const cachedData = stockPriceCache.get(cacheKey);
     if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
       const timestamp = new Date().toISOString();
-      console.log(`[${timestamp}] FINNHUB CACHE HIT: ${endpoint} with params:`, JSON.stringify(params));
+      console.log(
+        `[${timestamp}] FINNHUB CACHE HIT: ${endpoint} with params:`,
+        JSON.stringify(params)
+      );
       return cachedData.data;
     }
-    
+
     // Log every Finnhub API call
     const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] FINNHUB API CALL: ${endpoint} with params:`, JSON.stringify(params));
-    
+    console.log(
+      `[${timestamp}] FINNHUB API CALL: ${endpoint} with params:`,
+      JSON.stringify(params)
+    );
+
     const response = await axios.get(`${FINNHUB_BASE_URL}/${endpoint}`, {
       params: { ...params, token: FINNHUB_API_KEY },
     });
-    
+
     console.log(`[${timestamp}] FINNHUB API RESPONSE: ${endpoint} - SUCCESS`);
-    
+
     // Store in cache
     stockPriceCache.set(cacheKey, {
       data: response.data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
-    
+
     return response.data;
   } catch (err) {
     const timestamp = new Date().toISOString();
-    console.error(`[${timestamp}] FINNHUB API ERROR: ${endpoint} - ${err.message}`);
+    console.error(
+      `[${timestamp}] FINNHUB API ERROR: ${endpoint} - ${err.message}`
+    );
     throw err;
   }
 }
@@ -483,6 +493,77 @@ app.get("/api/competitions/available", auth, async (req, res) => {
   }
 });
 
+// Leave a competition (move this above the details route)
+app.post("/api/competitions/:competitionId/leave", auth, async (req, res) => {
+  try {
+    const { competitionId } = req.params;
+    console.log(
+      "[LEAVE COMPETITION] competitionId:",
+      competitionId,
+      "userId:",
+      req.user._id
+    );
+
+    // Verify the competition exists
+    const competition = await Competition.findById(competitionId);
+    if (!competition) {
+      console.log(
+        "[LEAVE COMPETITION] Competition not found for id:",
+        competitionId
+      );
+      return res.status(404).json({ message: "Competition not found" });
+    }
+
+    // Check if user is the host
+    if (competition.createdBy.toString() === req.user._id.toString()) {
+      console.log(
+        "[LEAVE COMPETITION] User is host, cannot leave:",
+        req.user._id
+      );
+      return res
+        .status(400)
+        .json({ message: "Host cannot leave their own competition" });
+    }
+
+    // Remove participant record
+    const participantResult = await CompetitionParticipant.deleteOne({
+      userId: req.user._id,
+      competitionId: competitionId,
+    });
+    console.log(
+      "[LEAVE COMPETITION] Participant delete result:",
+      participantResult
+    );
+
+    if (participantResult.deletedCount === 0) {
+      console.log(
+        "[LEAVE COMPETITION] No participant record found for user:",
+        req.user._id,
+        "competition:",
+        competitionId
+      );
+      return res
+        .status(404)
+        .json({ message: "You are not a participant in this competition" });
+    }
+
+    // Remove competition portfolio
+    const portfolioResult = await CompetitionPortfolio.deleteOne({
+      userId: req.user._id,
+      competitionId: competitionId,
+    });
+    console.log(
+      "[LEAVE COMPETITION] Portfolio delete result:",
+      portfolioResult
+    );
+
+    res.json({ message: "Successfully left the competition" });
+  } catch (error) {
+    console.error("Error leaving competition:", error);
+    res.status(500).json({ message: "Error leaving competition" });
+  }
+});
+
 // Get competition details
 app.get("/api/competitions/:competitionId", auth, async (req, res) => {
   try {
@@ -720,7 +801,7 @@ app.get("/api/friends", auth, async (req, res) => {
 app.post("/api/holdings", auth, async (req, res) => {
   try {
     const { stockSymbol, stockPrice, stockQuantity, action } = req.body;
-    logDatabaseQuery('READ', 'User', `Finding user by ID: ${req.user._id}`);
+    logDatabaseQuery("READ", "User", `Finding user by ID: ${req.user._id}`);
     const user = await User.findById(req.user._id);
 
     if (!user) {
@@ -734,7 +815,11 @@ app.post("/api/holdings", auth, async (req, res) => {
         return res.status(400).json({ message: "Insufficient funds" });
       }
       user.balance -= transactionAmount;
-      logDatabaseQuery('CREATE', 'Holding', `Creating new holding for ${stockSymbol}`);
+      logDatabaseQuery(
+        "CREATE",
+        "Holding",
+        `Creating new holding for ${stockSymbol}`
+      );
       const holding = new Holding({
         user: req.user._id,
         stockSymbol,
@@ -743,7 +828,11 @@ app.post("/api/holdings", auth, async (req, res) => {
       });
       await holding.save();
     } else if (action === "sell") {
-      logDatabaseQuery('READ', 'Holding', `Finding holdings for ${stockSymbol}`);
+      logDatabaseQuery(
+        "READ",
+        "Holding",
+        `Finding holdings for ${stockSymbol}`
+      );
       // Get all holdings for this stock symbol, sorted by purchase date (FIFO)
       const holdings = await Holding.find({
         user: req.user._id,
@@ -762,11 +851,19 @@ app.post("/api/holdings", auth, async (req, res) => {
 
         if (quantityToSell === holding.stockQuantity) {
           // Delete the holding if we're selling all of it
-          logDatabaseQuery('DELETE', 'Holding', `Deleting holding ${holding._id}`);
+          logDatabaseQuery(
+            "DELETE",
+            "Holding",
+            `Deleting holding ${holding._id}`
+          );
           await Holding.deleteOne({ _id: holding._id });
         } else {
           // Update the holding with remaining quantity
-          logDatabaseQuery('UPDATE', 'Holding', `Updating quantity for holding ${holding._id}`);
+          logDatabaseQuery(
+            "UPDATE",
+            "Holding",
+            `Updating quantity for holding ${holding._id}`
+          );
           holding.stockQuantity -= quantityToSell;
           await holding.save();
         }
@@ -781,18 +878,26 @@ app.post("/api/holdings", auth, async (req, res) => {
       user.balance += totalSaleAmount;
     }
 
-    logDatabaseQuery('UPDATE', 'User', `Updating balance for user ${user._id}`);
+    logDatabaseQuery("UPDATE", "User", `Updating balance for user ${user._id}`);
     await user.save();
 
     // Create a new portfolio snapshot
-    logDatabaseQuery('READ', 'Holding', `Getting all holdings for user ${req.user._id}`);
+    logDatabaseQuery(
+      "READ",
+      "Holding",
+      `Getting all holdings for user ${req.user._id}`
+    );
     const holdings = await Holding.find({ user: req.user._id });
     const totalValue = holdings.reduce(
       (sum, h) => sum + h.stockPrice * h.stockQuantity,
       0
     );
 
-    logDatabaseQuery('CREATE', 'PortfolioSnapshot', `Creating new snapshot for user ${req.user._id}`);
+    logDatabaseQuery(
+      "CREATE",
+      "PortfolioSnapshot",
+      `Creating new snapshot for user ${req.user._id}`
+    );
     const snapshot = new PortfolioSnapshot({
       user: req.user._id,
       totalValue,
@@ -960,13 +1065,17 @@ app.get("/api/portfolio/current", auth, async (req, res) => {
 app.get("/api/portfolio/current-value", auth, async (req, res) => {
   console.log("Getting current portfolio value");
   try {
-    logDatabaseQuery('READ', 'User', `Finding user by ID: ${req.user._id}`);
+    logDatabaseQuery("READ", "User", `Finding user by ID: ${req.user._id}`);
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    logDatabaseQuery('READ', 'Holding', `Getting all holdings for user ${req.user._id}`);
+    logDatabaseQuery(
+      "READ",
+      "Holding",
+      `Getting all holdings for user ${req.user._id}`
+    );
     const holdings = await Holding.find({ user: req.user._id });
     let totalValue = 0;
     const holdingsWithCurrentPrice = [];
