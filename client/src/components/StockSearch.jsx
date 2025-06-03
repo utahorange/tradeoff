@@ -217,7 +217,6 @@ const StockSearch = () => {
                         placeholder="Search stocks..."
                         className="search-input"
                     />
-                    {loading && <div className="loading-indicator">Searching...</div>}
                     <div className="filter-container">
                         <select
                             value={growthFilter}
