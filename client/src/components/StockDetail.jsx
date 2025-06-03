@@ -244,7 +244,22 @@ const StockDetail = () => {
                                         id="buyQuantity"
                                         min="1"
                                         value={quantity}
-                                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === '') {
+                                                setQuantity('');
+                                            } else {
+                                                const num = parseInt(val);
+                                                if (!isNaN(num)) {
+                                                    setQuantity(num);
+                                                }
+                                            }
+                                        }}
+                                        onBlur={(e) => {
+                                            if (quantity === '' || quantity < 1) {
+                                                setQuantity(1);
+                                            }
+                                        }}
                                     />
                                 </div>
                                 <div className="total-cost">
@@ -268,7 +283,24 @@ const StockDetail = () => {
                                             min="1"
                                             max={userHoldings}
                                             value={sellQuantity}
-                                            onChange={(e) => setSellQuantity(Math.max(1, Math.min(userHoldings, parseInt(e.target.value) || 1)))}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (val === '') {
+                                                    setSellQuantity('');
+                                                } else {
+                                                    const num = parseInt(val);
+                                                    if (!isNaN(num)) {
+                                                        setSellQuantity(num);
+                                                    }
+                                                }
+                                            }}
+                                            onBlur={(e) => {
+                                                if (sellQuantity === '' || sellQuantity < 1) {
+                                                    setSellQuantity(1);
+                                                } else if (sellQuantity > userHoldings) {
+                                                    setSellQuantity(userHoldings);
+                                                }
+                                            }}
                                         />
                                     </div>
                                     <div className="total-value">
