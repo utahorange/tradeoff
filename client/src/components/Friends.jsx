@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { Card, Input, Button, Avatar, Badge, message } from "antd";
-import { UserOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons";
-import Navbar from "./Navbar";
-import "./Friends.css";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Card, Input, Button, Avatar, Badge, message } from 'antd';
+import { UserOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import Navbar from './Navbar';
+import './Friends.css';
 
 const API_URL = "http://localhost:8080/api";
 
@@ -135,114 +135,103 @@ const Friends = () => {
     }
   };
 
-  return (
-    <div className="friends-container">
-      <Navbar />
-      <main className="friends-main">
-        <div className="friends-content">
-          <h1 className="friends-title">Friends</h1>
+    return (
+        <div className="friends-container">
+            <Navbar />
+            <main className="friends-main">
+                <div className="p-6 max-w-4xl mx-auto">
+                    <h1 className="text-2xl font-bold mb-6 text-white">Friends</h1>
+                    
+                    {/* Search Section */}
+                    <Card title="Find Friends" className="mb-6">
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="Search users by username"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onPressEnter={handleSearch}
+                            />
+                            <Button type="primary" onClick={handleSearch} loading={loading}>
+                                Search
+                            </Button>
+                        </div>
+                        
+                        {searchResults.length > 0 && (
+                            <div className="mt-4">
+                                {searchResults.map(user => (
+                                    <div key={user._id} className="friend-item">
+                                        <div className="friend-info">
+                                            <Avatar icon={<UserOutlined />} />
+                                            <span className="friend-username">{user.username}</span>
+                                        </div>
+                                        <Button type="primary" onClick={() => handleSendRequest(user._id)}>
+                                            Add Friend
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {searchTerm.length >= 2 && searchResults.length === 0 && !loading && (
+                            <div className="empty-state">No users found</div>
+                        )}
+                    </Card>
 
-          {/* Search Section */}
-          <Card title="Find Friends" className="friends-card">
-            <div className="search-container">
-              <Input
-                placeholder="Search users by username"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onPressEnter={handleSearch}
-              />
-              <Button type="primary" onClick={handleSearch} loading={loading}>
-                Search
-              </Button>
-            </div>
+                    {/* Friend Requests Section */}
+                    {friendRequests.length > 0 && (
+                        <Card 
+                            title={
+                                <div className="flex items-center gap-2 text-white">
+                                    Friend Requests
+                                    <Badge count={friendRequests.length} />
+                                </div>
+                            } 
+                            className="mb-6"
+                        >
+                            {friendRequests.map(request => (
+                                <div key={request._id} className="friend-item">
+                                    <div className="friend-info">
+                                        <Avatar icon={<UserOutlined />} />
+                                        <span className="friend-username">{request.sender.username}</span>
+                                    </div>
+                                    <div className="friend-actions">
+                                        <Button
+                                            type="primary"
+                                            icon={<CheckOutlined />}
+                                            onClick={() => handleRespondToRequest(request._id, true)}
+                                        >
+                                            Accept
+                                        </Button>
+                                        <Button
+                                            danger
+                                            icon={<CloseOutlined />}
+                                            onClick={() => handleRespondToRequest(request._id, false)}
+                                        >
+                                            Reject
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </Card>
+                    )}
 
-            {searchResults.length > 0 && (
-              <div className="search-results">
-                {searchResults.map((user) => (
-                  <div key={user._id} className="friend-item">
-                    <div className="friend-info">
-                      <Avatar icon={<UserOutlined />} />
-                      <span className="friend-username">{user.username}</span>
-                    </div>
-                    <Button
-                      type="primary"
-                      onClick={() => handleSendRequest(user._id)}
-                    >
-                      Add Friend
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-            {searchTerm.length >= 2 &&
-              searchResults.length === 0 &&
-              !loading && <div className="empty-state">No users found</div>}
-          </Card>
-
-          {/* Friend Requests Section */}
-          {friendRequests.length > 0 && (
-            <Card
-              title={
-                <div className="friend-requests-header">
-                  Friend Requests
-                  <Badge
-                    count={friendRequests.length}
-                    style={{ boxShadow: "none", background: "none" }}
-                  />
+                    {/* Friends List Section */}
+                    <Card title={<span className="text-white">My Friends ({friends.length})</span>}>
+                        {friends.length === 0 ? (
+                            <div className="empty-state">You haven't added any friends yet</div>
+                        ) : (
+                            friends.map(friend => (
+                                <div key={friend._id} className="friend-item">
+                                    <div className="friend-info">
+                                        <Avatar icon={<UserOutlined />} />
+                                        <span className="friend-username">{friend.username}</span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </Card>
                 </div>
-              }
-              className="friends-card"
-            >
-              {friendRequests.map((request) => (
-                <div key={request._id} className="friend-item">
-                  <div className="friend-info">
-                    <Avatar icon={<UserOutlined />} />
-                    <span className="friend-username">
-                      {request.sender.username}
-                    </span>
-                  </div>
-                  <div className="friend-actions">
-                    <Button
-                      type="primary"
-                      icon={<CheckOutlined />}
-                      onClick={() => handleRespondToRequest(request._id, true)}
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      danger
-                      icon={<CloseOutlined />}
-                      onClick={() => handleRespondToRequest(request._id, false)}
-                    >
-                      Reject
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </Card>
-          )}
-
-          {/* Friends List Section */}
-          <Card title="My Friends" className="friends-card">
-            {friends.length === 0 ? (
-              <div className="empty-state">
-                You haven't added any friends yet
-              </div>
-            ) : (
-              friends.map((friend) => (
-                <div key={friend._id} className="friend-item">
-                  <div className="friend-info">
-                    <Avatar icon={<UserOutlined />} />
-                    <span className="friend-username">{friend.username}</span>
-                  </div>
-                </div>
-              ))
-            )}
-          </Card>
+            </main>
         </div>
-      </main>
-    </div>
-  );
+    );
 };
-
 export default Friends;

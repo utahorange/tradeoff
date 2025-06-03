@@ -42,9 +42,9 @@
 
 .filter-container {
     display: flex;
-    gap: 8px;
-    flex: 1;
-    height: 100%;
+    gap: 12px;
+    margin-top: 16px;
+    justify-content: flex-start;
 }
 
 .filter-select {

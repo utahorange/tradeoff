@@ -44,6 +44,7 @@
     cursor: pointer;
     color: #e0e0e0;
     transition: background 0.2s;
+    margin-bottom: 4px;
   }
   .sidebar-nav li.active, .sidebar-nav li:hover {
     background: #353945;
@@ -62,7 +63,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24px 0 0 0;
+    padding: 24px 0 16px 0;
   }
   
   .dashboard-search {
@@ -96,12 +97,23 @@
   .dashboard-topbar-icons .profile-icon:hover,
   .dashboard-topbar-icons .logout-icon:hover {
     color: #007bff;
-    color: #fff;
     transition: color 0.2s;
   }
-  .dashboard-topbar-icons svg:hover {
-    color: #4299e1;
+
+  .profile-info {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 0.5rem;
+}
+
+  .username {
+      color: #fff;
+      font-weight: 500;
+      font-size: 1rem;
+      margin-left: 0.25rem;
   }
+
   .dashboard-stats {
     display: flex;
     gap: 24px;
@@ -365,6 +377,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
+    margin-top: 64px;
     padding: 0 16px;
   }
   
