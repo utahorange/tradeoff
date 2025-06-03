@@ -82,55 +82,56 @@ const PortfolioGraph = ({ hasHoldings }) => {
                 backgroundColor: 'rgba(66,153,225,0.10)', // subtle fill
                 pointBackgroundColor: 'rgba(66,153,225,1)',
                 pointBorderColor: '#23262f',
-                tension: 0.4, // smooth curve
+                tension: 0, // smooth curve
                 fill: true,
             }
         ]
     };
 
-    const options = {
+    const chartOptions = {
         responsive: true,
+        maintainAspectRatio: false,
+        elements: {
+            line: {
+                tension: 0 // This removes the curve fitting and makes straight lines
+            }
+        },
         plugins: {
             legend: {
-                display: true,
                 position: 'top',
-                align: 'end',
                 labels: {
-                    color: '#f1f1f1',
-                    font: { size: 14, family: 'Inter, sans-serif' }
+                    color: '#fff'
                 }
             },
             title: {
-                display: false
-            },
-            tooltip: {
-                backgroundColor: '#23262f',
-                titleColor: '#fff',
-                bodyColor: '#fff',
-                borderColor: '#4299e1',
-                borderWidth: 1,
+                display: true,
+                text: `Portfolio Value Over Time (${timeframe})`,
+                color: '#fff',
+                font: {
+                    size: 16,
+                    weight: 'bold'
+                }
             }
         },
         scales: {
-            x: {
-                grid: {
-                    color: '#353945',
-                },
-                ticks: {
-                    color: '#b5b5b5',
-                    font: { family: 'Inter, sans-serif' }
-                }
-            },
             y: {
-                grid: {
-                    color: '#353945',
-                },
+                beginAtZero: false,
                 ticks: {
-                    color: '#b5b5b5',
+                    color: '#fff',
                     callback: function(value) {
                         return '$' + value.toLocaleString();
-                    },
-                    font: { family: 'Inter, sans-serif' }
+                    }
+                },
+                grid: {
+                    color: '#444'
+                }
+            },
+            x: {
+                ticks: {
+                    color: '#fff'
+                },
+                grid: {
+                    color: '#444'
                 }
             }
         }
@@ -153,7 +154,7 @@ const PortfolioGraph = ({ hasHoldings }) => {
                 </div>
             </div>
             <div className="chart-container">
-                <Line data={chartData} options={options} />
+                <Line data={chartData} options={chartOptions} />
             </div>
         </div>
     );
