@@ -193,4 +193,49 @@
     padding: 1rem;
     overflow-y: auto;
     background-color: #141518;
+}
+
+.trading-sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.buy-stock-section,
+.sell-stock-section {
+    background: #23262f;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.sell-button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.sell-button:hover {
+    background-color: #dc2626;
+}
+
+.total-value {
+    margin: 1rem 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* Make trading sections stack on mobile */
+@media (max-width: 768px) {
+    .trading-sections {
+        grid-template-columns: 1fr;
+    }
 } 

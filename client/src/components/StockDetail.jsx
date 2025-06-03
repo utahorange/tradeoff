@@ -16,6 +16,10 @@ const StockDetail = () => {
     const [quantity, setQuantity] = useState(1);
     const [buyError, setBuyError] = useState('');
     const [buySuccess, setBuySuccess] = useState('');
+    const [userHoldings, setUserHoldings] = useState(0);
+    const [sellQuantity, setSellQuantity] = useState(1);
+    const [sellError, setSellError] = useState('');
+    const [sellSuccess, setSellSuccess] = useState('');
 
     useEffect(() => {
         const fetchStockData = async () => {
@@ -37,6 +41,31 @@ const StockDetail = () => {
         };
 
         fetchStockData();
+    }, [symbol]);
+
+    useEffect(() => {
+        const fetchUserHoldings = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.get('http://localhost:8080/api/holdings', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                const holdings = response.data.holdings;
+                const stockHolding = holdings.reduce((total, holding) => {
+                    if (holding.stockSymbol === symbol) {
+                        return total + holding.stockQuantity;
+                    }
+                    return total;
+                }, 0);
+                setUserHoldings(stockHolding);
+            } catch (err) {
+                console.error('Error fetching holdings:', err);
+            }
+        };
+
+        fetchUserHoldings();
     }, [symbol]);
 
     const handleBuyStock = async (e) => {
@@ -64,6 +93,33 @@ const StockDetail = () => {
         } catch (err) {
             console.error('Error buying stock:', err);
             setBuyError(err.response?.data?.message || 'Failed to buy stock');
+        }
+    };
+
+    const handleSellStock = async (e) => {
+        e.preventDefault();
+        setSellError('');
+        setSellSuccess('');
+
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post('http://localhost:8080/api/holdings', {
+                stockSymbol: symbol,
+                stockPrice: stockData.price,
+                stockQuantity: sellQuantity,
+                action: 'sell'
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            setSellSuccess('Successfully sold stocks!');
+            navigate('/');
+            setSellQuantity(1);
+        } catch (err) {
+            console.error('Error selling stock:', err);
+            setSellError(err.response?.data?.message || 'Failed to sell stock');
         }
     };
 
@@ -177,26 +233,53 @@ const StockDetail = () => {
                         </div>
                     </div>
 
-                    <div className="buy-stock-section">
-                        <h3>Buy {stockData.symbol}</h3>
-                        <form onSubmit={handleBuyStock}>
-                            <div className="form-group">
-                                <label htmlFor="quantity">Quantity:</label>
-                                <input
-                                    type="number"
-                                    id="quantity"
-                                    min="1"
-                                    value={quantity}
-                                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                                />
+                    <div className="trading-sections">
+                        <div className="buy-stock-section">
+                            <h3>Buy {stockData.symbol}</h3>
+                            <form onSubmit={handleBuyStock}>
+                                <div className="form-group">
+                                    <label htmlFor="buyQuantity">Quantity:</label>
+                                    <input
+                                        type="number"
+                                        id="buyQuantity"
+                                        min="1"
+                                        value={quantity}
+                                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                    />
+                                </div>
+                                <div className="total-cost">
+                                    Total Cost: ${(stockData.price * quantity).toFixed(2)}
+                                </div>
+                                {buyError && <div className="error-message">{buyError}</div>}
+                                {buySuccess && <div className="success-message">{buySuccess}</div>}
+                                <button type="submit" className="buy-button">Buy Stock</button>
+                            </form>
+                        </div>
+
+                        {userHoldings > 0 && (
+                            <div className="sell-stock-section">
+                                <h3>Sell {stockData.symbol}</h3>
+                                <form onSubmit={handleSellStock}>
+                                    <div className="form-group">
+                                        <label htmlFor="sellQuantity">Quantity (Own: {userHoldings}):</label>
+                                        <input
+                                            type="number"
+                                            id="sellQuantity"
+                                            min="1"
+                                            max={userHoldings}
+                                            value={sellQuantity}
+                                            onChange={(e) => setSellQuantity(Math.max(1, Math.min(userHoldings, parseInt(e.target.value) || 1)))}
+                                        />
+                                    </div>
+                                    <div className="total-value">
+                                        Total Value: ${(stockData.price * sellQuantity).toFixed(2)}
+                                    </div>
+                                    {sellError && <div className="error-message">{sellError}</div>}
+                                    {sellSuccess && <div className="success-message">{sellSuccess}</div>}
+                                    <button type="submit" className="sell-button">Sell Stock</button>
+                                </form>
                             </div>
-                            <div className="total-cost">
-                                Total Cost: ${totalCost}
-                            </div>
-                            {buyError && <div className="error-message">{buyError}</div>}
-                            {buySuccess && <div className="success-message">{buySuccess}</div>}
-                            <button type="submit" className="buy-button">Buy Stock</button>
-                        </form>
+                        )}
                     </div>
                 </div>
             </main>
