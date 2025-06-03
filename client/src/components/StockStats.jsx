@@ -20,7 +20,11 @@ const StockStats = ({ setLoggedInUser }) => {
     };
 
     useEffect(() => {
+        let isMounted = true;
+        
         const fetchPortfolioData = async () => {
+            if (!isMounted) return;
+            
             try {
                 const token = localStorage.getItem('token');
                 const response = await axios.get('http://localhost:8080/api/portfolio/current-value', {
@@ -28,18 +32,25 @@ const StockStats = ({ setLoggedInUser }) => {
                         Authorization: `Bearer ${token}`
                     }
                 });
-                setPortfolioData(response.data);
-                setLoading(false);
+                if (isMounted) {
+                    setPortfolioData(response.data);
+                    setLoading(false);
+                }
             } catch (err) {
-                setError('Failed to fetch portfolio data');
-                setLoading(false);
+                if (isMounted) {
+                    setError('Failed to fetch portfolio data');
+                    setLoading(false);
+                }
             }
         };
 
         fetchPortfolioData();
-        // Refresh data every 5 minutes
         const interval = setInterval(fetchPortfolioData, 300000);
-        return () => clearInterval(interval);
+        
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
     }, []);
 
     const displayData = portfolioData || {
