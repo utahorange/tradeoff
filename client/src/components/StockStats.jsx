@@ -3,15 +3,17 @@ import axios from 'axios';
 import './StockStats.css';
 import { CgLogOut } from "react-icons/cg";
 import { FaUserCircle } from "react-icons/fa";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import StockSearch from './StockSearch';
 import Navbar from './Navbar';
 
 const StockStats = ({ setLoggedInUser }) => {
     const navigate = useNavigate();
+    const { username } = useParams(); // Get username from URL params
     const [portfolioData, setPortfolioData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [viewingUser, setViewingUser] = useState(null);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -23,12 +25,17 @@ const StockStats = ({ setLoggedInUser }) => {
         const fetchPortfolioData = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get('http://localhost:8080/api/portfolio/current-value', {
+                const endpoint = username 
+                    ? `http://localhost:8080/api/portfolio/${username}/current-value`
+                    : 'http://localhost:8080/api/portfolio/current-value';
+                
+                const response = await axios.get(endpoint, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 });
                 setPortfolioData(response.data);
+                setViewingUser(username || localStorage.getItem('username'));
                 setLoading(false);
             } catch (err) {
                 setError('Failed to fetch portfolio data');
@@ -37,10 +44,13 @@ const StockStats = ({ setLoggedInUser }) => {
         };
 
         fetchPortfolioData();
-        // Refresh data every 5 minutes
-        const interval = setInterval(fetchPortfolioData, 300000);
-        return () => clearInterval(interval);
-    }, []);
+        // Refresh data every 5 minutes if viewing own portfolio
+        let interval;
+        if (!username) {
+            interval = setInterval(fetchPortfolioData, 300000);
+        }
+        return () => interval && clearInterval(interval);
+    }, [username]);
 
     const displayData = portfolioData || {
         totalValue: 0,
@@ -83,7 +93,7 @@ const StockStats = ({ setLoggedInUser }) => {
                     </div>
                 </header>
                 <div className="portfolio-summary">
-                    <h2>Portfolio Summary</h2>
+                    <h2>{viewingUser === localStorage.getItem('username') ? 'My Portfolio Summary' : `${viewingUser}'s Portfolio Summary`}</h2>
                     <div className="summary-cards">
                         <div className="summary-card">
                             <h3>Total Value</h3>

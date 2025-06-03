@@ -145,7 +145,13 @@ const Home = ({setLoggedInUser}) => {
               <li className="text-muted">No friends added yet</li>
             ) : (
               friends.map((friend) => (
-                <li key={friend._id}>{friend.username}</li>
+                <li 
+                  key={friend._id}
+                  className="friend-item"
+                  onClick={() => navigate(`/stats/${friend.username}`)}
+                >
+                  {friend.username}
+                </li>
               ))
             )}
           </ul>
