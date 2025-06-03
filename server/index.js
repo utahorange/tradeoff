@@ -564,6 +564,90 @@ app.post("/api/competitions/:competitionId/leave", auth, async (req, res) => {
   }
 });
 
+// Delete a competition (only allowed for the creator)
+app.delete("/api/competitions/:competitionId", auth, async (req, res) => {
+  try {
+    const { competitionId } = req.params;
+    console.log("[DELETE COMPETITION] Request received:", {
+      competitionId,
+      userId: req.user._id,
+      username: req.user.username,
+    });
+
+    // Verify the competition exists
+    const competition = await Competition.findById(competitionId);
+    console.log(
+      "[DELETE COMPETITION] Found competition:",
+      competition
+        ? {
+            id: competition._id,
+            name: competition.name,
+            host: competition.host,
+            createdBy: competition.createdBy,
+          }
+        : "Not found"
+    );
+
+    if (!competition) {
+      console.log(
+        "[DELETE COMPETITION] Competition not found for id:",
+        competitionId
+      );
+      return res.status(404).json({ message: "Competition not found" });
+    }
+
+    // Check if user is the creator
+    const isCreator =
+      competition.createdBy.toString() === req.user._id.toString();
+    console.log("[DELETE COMPETITION] User check:", {
+      isCreator,
+      competitionCreator: competition.createdBy.toString(),
+      userId: req.user._id.toString(),
+    });
+
+    if (!isCreator) {
+      console.log("[DELETE COMPETITION] User is not creator:", req.user._id);
+      return res
+        .status(403)
+        .json({ message: "Only the creator can delete this competition" });
+    }
+
+    // Delete all related records first
+    console.log(
+      "[DELETE COMPETITION] Deleting related records for competition:",
+      competitionId
+    );
+    const participantResult = await CompetitionParticipant.deleteMany({
+      competitionId,
+    });
+    const portfolioResult = await CompetitionPortfolio.deleteMany({
+      competitionId,
+    });
+    console.log("[DELETE COMPETITION] Deleted records:", {
+      participants: participantResult.deletedCount,
+      portfolios: portfolioResult.deletedCount,
+    });
+
+    // Delete the competition
+    const competitionResult = await Competition.deleteOne({
+      _id: competitionId,
+    });
+    console.log(
+      "[DELETE COMPETITION] Competition deletion result:",
+      competitionResult
+    );
+
+    res.json({ message: "Competition deleted successfully" });
+  } catch (error) {
+    console.error("[DELETE COMPETITION] Error:", error);
+    console.error("[DELETE COMPETITION] Error details:", {
+      message: error.message,
+      stack: error.stack,
+    });
+    res.status(500).json({ message: "Error deleting competition" });
+  }
+});
+
 // Get competition details
 app.get("/api/competitions/:competitionId", auth, async (req, res) => {
   try {
