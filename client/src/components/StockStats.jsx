@@ -72,10 +72,13 @@ const StockStats = ({ setLoggedInUser }) => {
                         <StockSearch />
                     </div>
                     <div className="dashboard-topbar-icons">
-                        <CgLogOut className="logout-icon" onClick={handleLogout} />
-                        <div className="profile-info" onClick={() => navigate('/profile')}>
-                            <FaUserCircle className="profile-icon" />
-                            <span className="username">{localStorage.getItem('username')}</span>
+                        <CgLogOut 
+                            className="logout-icon" 
+                            onClick={handleLogout}
+                        />
+                        <div className="user-profile-container" onClick={() => {navigate('/profile');}}>
+                            <FaUserCircle className="profile-icon"/>
+                            <h2 className="username">{localStorage.getItem('username')}</h2>
                         </div>
                     </div>
                 </header>

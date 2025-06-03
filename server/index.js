@@ -115,6 +115,41 @@ mongoose
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
+// User Schema
+const userSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  balance: {
+    type: Number,
+    default: 10000,
+    required: true,
+  },
+  friends: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 // Authentication Routes
 app.post("/api/register", async (req, res) => {
   try {
@@ -226,6 +261,82 @@ const auth = async (req, res, next) => {
 };
 
 // Competition Routes
+// Create a new competition
+app.post("/api/competitions", auth, async (req, res) => {
+  try {
+    const { name, description, startDate, endDate, initialCash, visibility } =
+      req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const competition = new Competition({
+      name,
+      host: user.username,
+      details: description,
+      startDate: new Date(startDate),
+      endDate: endDate ? new Date(endDate) : null,
+      startingCash: initialCash,
+      visibility,
+      createdBy: user._id,
+    });
+
+    await competition.save();
+
+    // Create a participant record for the host
+    const participant = new CompetitionParticipant({
+      userId: user._id,
+      competitionId: competition._id,
+      accountValue: initialCash,
+      todayChange: 0,
+      overallChange: 0,
+    });
+
+    await participant.save();
+
+    // Create an initial portfolio for the host
+    const portfolio = new CompetitionPortfolio({
+      userId: user._id,
+      competitionId: competition._id,
+      cashBalance: initialCash,
+      stocks: [],
+    });
+
+    await portfolio.save();
+
+    res.status(201).json({
+      message: "Competition created successfully",
+      competition: {
+        id: competition._id,
+        name: competition.name,
+        host: competition.host,
+        details: competition.details,
+        startDate: competition.startDate.toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }),
+        endDate: competition.endDate
+          ? competition.endDate.toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "No End",
+        players: 1,
+        startingCash: competition.startingCash,
+        locked: competition.locked,
+        visibility: competition.visibility,
+      },
+    });
+  } catch (error) {
+    console.error("Error creating competition:", error);
+    res.status(500).json({ message: "Error creating competition" });
+  }
+});
+
 // Get all competitions
 app.get("/api/competitions", auth, async (req, res) => {
   try {
@@ -869,7 +980,6 @@ app.get(
     }
   }
 );
-
 // Stock search endpoint
 app.get("/api/stocks/search", auth, async (req, res) => {
   try {

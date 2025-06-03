@@ -3,6 +3,19 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./StockSearch.css";
 
+const growthOptions = [
+  { value: "any", label: "-" },
+  { value: "growing", label: "Growing" },
+  { value: "shrinking", label: "Shrinking" },
+];
+const priceOptions = [
+  { value: "any", label: "-" },
+  { value: "under10", label: "Under $10" },
+  { value: "10to50", label: "$10 - $50" },
+  { value: "50to100", label: "$50 - $100" },
+  { value: "over100", label: "Over $100" },
+];
+
 const StockSearch = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -10,16 +23,28 @@ const StockSearch = () => {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [growthFilter, setGrowthFilter] = useState("any"); // 'any', 'growing', 'shrinking'
   const [priceRangeFilter, setPriceRangeFilter] = useState("any"); // 'any', 'under10', '10to50', '50to100', 'over100'
+  const [growthPopover, setGrowthPopover] = useState(false);
+  const [pricePopover, setPricePopover] = useState(false);
   const dropdownRef = useRef(null);
+  const growthChipRef = useRef(null);
+  const priceChipRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      if (
+        (growthChipRef.current &&
+          growthChipRef.current.contains(event.target)) ||
+        (priceChipRef.current && priceChipRef.current.contains(event.target))
+      ) {
+        return;
+      }
+      setGrowthPopover(false);
+      setPricePopover(false);
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownVisible(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -42,7 +67,9 @@ const StockSearch = () => {
         }
 
         const response = await fetch(
-          `/api/stocks/search?query=${encodeURIComponent(searchTerm)}`,
+          `http://localhost:8080/api/stocks/search?query=${encodeURIComponent(
+            searchTerm
+          )}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -76,12 +103,15 @@ const StockSearch = () => {
         const stocksWithQuotes = await Promise.all(
           validStocks.map(async (stock) => {
             try {
-              const quoteResponse = await fetch(`/api/quote/${stock.symbol}`, {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-              });
+              const quoteResponse = await fetch(
+                `http://localhost:8080/api/quote/${stock.symbol}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
 
               if (!quoteResponse.ok) {
                 return stock;
@@ -187,43 +217,42 @@ const StockSearch = () => {
     return true;
   });
 
-    return (
-        <div className="stock-search-container" ref={dropdownRef}>
-            <div className="search-controls">
-                <div className="search-form">
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search stocks..."
-                        className="search-input"
-                    />
-                    {loading && <div className="loading-indicator">Searching...</div>}
-                </div>
-
-                <div className="filter-container">
-                    <select
-                        value={growthFilter}
-                        onChange={(e) => setGrowthFilter(e.target.value)}
-                        className="filter-select"
-                    >
-                        <option value="any">Any Change</option>
-                        <option value="growing">Growing</option>
-                        <option value="shrinking">Shrinking</option>
-                    </select>
-                    <select
-                        value={priceRangeFilter}
-                        onChange={(e) => setPriceRangeFilter(e.target.value)}
-                        className="filter-select"
-                    >
-                        <option value="any">Any Price</option>
-                        <option value="under10">Under $10</option>
-                        <option value="10to50">$10 - $50</option>
-                        <option value="50to100">$50 - $100</option>
-                        <option value="over100">Over $100</option>
-                    </select>
-                </div>
-            </div>
+  return (
+    <div className="stock-search-container" ref={dropdownRef}>
+      <div className="search-controls">
+        <div className="search-form">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search stocks..."
+            className="search-input"
+          />
+          {loading && <div className="loading-indicator">Searching...</div>}
+          <div className="filter-container">
+            <select
+              value={growthFilter}
+              onChange={(e) => setGrowthFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="any">Any Change</option>
+              <option value="growing">Growing</option>
+              <option value="shrinking">Shrinking</option>
+            </select>
+            <select
+              value={priceRangeFilter}
+              onChange={(e) => setPriceRangeFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="any">Any Price</option>
+              <option value="under10">Under $10</option>
+              <option value="10to50">$10 - $50</option>
+              <option value="50to100">$50 - $100</option>
+              <option value="over100">Over $100</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
       {isDropdownVisible && filteredResults.length > 0 && (
         <div className="search-results">

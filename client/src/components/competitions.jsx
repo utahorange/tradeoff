@@ -14,6 +14,14 @@ import Navbar from "./Navbar";
 import "./Competitions.css";
 import { useNavigate } from "react-router-dom";
 
+// Create an axios instance with baseURL
+const api = axios.create({
+  baseURL: "http://localhost:8080",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
 const Competitions = () => {
   console.log("Competitions component mounting");
   // State for active tab
@@ -73,7 +81,7 @@ const Competitions = () => {
         if (activeTab === "leaderboard") {
           // If we have a selected competition, fetch its leaderboard
           if (selectedCompetitionId) {
-            const response = await axios.get(
+            const response = await api.get(
               `/api/competitions/${selectedCompetitionId}/leaderboard`,
               config
             );
@@ -84,7 +92,7 @@ const Competitions = () => {
             );
           } else {
             // If no competition is selected, fetch my games first to get a competition ID
-            const myGamesResponse = await axios.get(
+            const myGamesResponse = await api.get(
               "/api/competitions/my-games",
               config
             );
@@ -92,7 +100,7 @@ const Competitions = () => {
             if (myGamesResponse.data && myGamesResponse.data.length > 0) {
               const firstCompetition = myGamesResponse.data[0];
               setSelectedCompetitionId(firstCompetition.id);
-              const leaderboardResponse = await axios.get(
+              const leaderboardResponse = await api.get(
                 `/api/competitions/${firstCompetition.id}/leaderboard`,
                 config
               );
@@ -112,17 +120,11 @@ const Competitions = () => {
             }
           }
         } else if (activeTab === "myGames") {
-          const response = await axios.get(
-            "/api/competitions/my-games",
-            config
-          );
+          const response = await api.get("/api/competitions/my-games", config);
           console.log("My games response:", response.data);
           setMyGames(Array.isArray(response.data) ? response.data : []);
         } else if (activeTab === "joinGame") {
-          const response = await axios.get(
-            "/api/competitions/available",
-            config
-          );
+          const response = await api.get("/api/competitions/available", config);
           console.log("Available games response:", response.data);
           setAvailableGames(Array.isArray(response.data) ? response.data : []);
         }
@@ -166,6 +168,8 @@ const Competitions = () => {
 
     try {
       const token = localStorage.getItem("token");
+      console.log("Token from localStorage:", token ? "exists" : "missing");
+
       if (!token) {
         setError("Authentication required. Please log in.");
         setLoading(false);
@@ -175,16 +179,19 @@ const Competitions = () => {
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
       };
+      console.log("Request config:", config);
+      console.log("Request data:", createGameForm);
 
-      // Use relative URL instead of hardcoded localhost
-      const response = await axios.post(
+      // Use the api instance with baseURL
+      console.log("Making POST request to /api/competitions");
+      const response = await api.post(
         "/api/competitions",
         createGameForm,
         config
       );
+      console.log("Response received:", response.data);
 
       // Reset form
       setCreateGameForm({
@@ -203,6 +210,13 @@ const Competitions = () => {
       alert("Competition created successfully!");
     } catch (err) {
       console.error("Error creating competition:", err);
+      console.error("Error details:", {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        headers: err.response?.headers,
+      });
+
       if (err.response?.status === 401) {
         setError("Your session has expired. Please log in again.");
         // Optionally redirect to login page or clear token
@@ -237,24 +251,20 @@ const Competitions = () => {
         },
       };
 
-      // Send request to join competition using relative URL
-      await axios.post(`/api/competitions/${gameId}/join`, {}, config);
+      await api.post(`/api/competitions/${gameId}/join`, {}, config);
 
-      // Refresh available games list using relative URL
-      const availableResponse = await axios.get(
+      const availableResponse = await api.get(
         "/api/competitions/available",
         config
       );
       setAvailableGames(availableResponse.data);
 
-      // Refresh my games list using relative URL
-      const myGamesResponse = await axios.get(
+      const myGamesResponse = await api.get(
         "/api/competitions/my-games",
         config
       );
       setMyGames(myGamesResponse.data);
 
-      // Show success message
       alert("Successfully joined the competition!");
     } catch (err) {
       console.error("Error joining competition:", err);
