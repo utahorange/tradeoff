@@ -114,22 +114,6 @@ const UserProfile = ({ setLoggedInUser }) => {
         <div className="dashboard-root">
             <Navbar />
             <main className="dashboard-main">
-                <header className="dashboard-topbar">
-                    <div className="search-container">
-                        <StockSearch />
-                    </div>
-                    <div className="dashboard-topbar-icons">
-                        <CgLogOut 
-                            className="logout-icon" 
-                            onClick={handleLogout}
-                        />
-                        <div className="user-profile-container" onClick={() => {navigate('/profile');}}>
-                            <FaUserCircle className="profile-icon"/>
-                            <h2 className="username">{localStorage.getItem('username')}</h2>
-                        </div>
-                    </div>
-                </header>
-
                 <div className="profile-content">
                     {message && <div className="success-message">{message}</div>}
                     {error && <div className="error-message">{error}</div>}
