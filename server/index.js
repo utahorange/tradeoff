@@ -12,6 +12,7 @@ const User = require("./Models/user");
 const Competition = require('./Models/competition');
 const CompetitionParticipant = require('./Models/competitionParticipant');
 const CompetitionPortfolio = require('./Models/competitionPortfolio');
+const userRoutes = require('./routes/userRoutes');
 const profilePictureRoutes = require('./routes/profilePictureRoutes');
 require('dotenv').config();
 
@@ -22,7 +23,7 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
-// app.use('/api/user', userRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/profile-picture', profilePictureRoutes);
 
 
