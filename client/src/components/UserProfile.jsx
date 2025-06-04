@@ -119,8 +119,14 @@ const UserProfile = ({ setLoggedInUser }) => {
                         <StockSearch />
                     </div>
                     <div className="dashboard-topbar-icons">
-                        <CgLogOut className="logout-icon" onClick={handleLogout} />
-                        <FaUserCircle className="profile-icon" onClick={() => navigate('/profile')} />
+                        <CgLogOut 
+                            className="logout-icon" 
+                            onClick={handleLogout}
+                        />
+                        <div className="user-profile-container" onClick={() => {navigate('/profile');}}>
+                            <FaUserCircle className="profile-icon"/>
+                            <h2 className="username">{localStorage.getItem('username')}</h2>
+                        </div>
                     </div>
                 </header>
 
@@ -140,6 +146,7 @@ const UserProfile = ({ setLoggedInUser }) => {
                                         src={profilePicture} 
                                         alt="Profile" 
                                         className="profile-picture"
+                                        onError={(e) => { e.target.onerror = null; setProfilePicture(null); }}
                                     />
                                 ) : (
                                     <FaUserCircle className="profile-icon" style={{ width: '100%', height: '100%' }} />
