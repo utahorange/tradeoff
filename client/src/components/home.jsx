@@ -126,44 +126,43 @@ const Home = ({ setLoggedInUser }) => {
               </div>
             </div>
           </div>
-          <div className="holdings-section">
+          <div className="holdings-container">
             <h2>My Stock Holdings</h2>
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
+            ) : holdings.length === 0 ? (
+              <div className="dashboard-holdings-scroll">
+                <div className="dashboard-holding-card">
+                  <div className="holding-symbol">No Stocks Yet</div>
+                  <div className="holding-quantity">
+                    Start investing by buying your first stock!
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="dashboard-holdings-scroll">
+                {Object.entries(
+                  holdings.reduce((acc, h) => {
+                    acc[h.stockSymbol] =
+                      (acc[h.stockSymbol] || 0) + h.stockQuantity;
+                    return acc;
+                  }, {})
+                ).map(([symbol, quantity]) => (
+                  <div
+                    className="dashboard-holding-card"
+                    key={symbol}
+                    onClick={() => navigate(`/stock/${symbol}`)}
+                  >
+                    <div className="holding-symbol">{symbol}</div>
+                    <div className="holding-quantity">Qty: {quantity}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-        {/* Holdings Cards Scroll */}
-        {loading ? (
-          <p>Loading...</p>
-        ) : error ? (
-          <p style={{ color: "red" }}>{error}</p>
-        ) : holdings.length === 0 ? (
-          <div className="dashboard-holdings-scroll">
-            <div className="dashboard-holding-card">
-              <div className="holding-symbol">No Stocks Yet</div>
-              <div className="holding-quantity">
-                Start investing by buying your first stock!
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="dashboard-holdings-scroll">
-            {Object.entries(
-              holdings.reduce((acc, h) => {
-                acc[h.stockSymbol] =
-                  (acc[h.stockSymbol] || 0) + h.stockQuantity;
-                return acc;
-              }, {})
-            ).map(([symbol, quantity]) => (
-              <div
-                className="dashboard-holding-card"
-                key={symbol}
-                onClick={() => navigate(`/stock/${symbol}`)}
-              >
-                <div className="holding-symbol">{symbol}</div>
-                <div className="holding-quantity">Qty: {quantity}</div>
-              </div>
-            ))}
-          </div>
-        )}
         {/* Portfolio Value Over Time Graph - Centered and Large */}
         <div className="dashboard-portfolio-graph-center">
           <PortfolioGraph usersData={portfolioHistory} />
