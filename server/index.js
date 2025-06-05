@@ -1345,6 +1345,15 @@ app.post("/api/competitions/:competitionId/buy", auth, async (req, res) => {
     const { symbol, quantity, price } = req.body;
     const userId = req.user._id;
 
+    // Check if competition exists and has not ended
+    const competition = await Competition.findById(competitionId);
+    if (!competition) {
+      return res.status(404).json({ message: "Competition not found" });
+    }
+    if (competition.endDate && new Date(competition.endDate) < new Date()) {
+      return res.status(400).json({ message: "This competition has ended" });
+    }
+
     // Find the user's competition portfolio
     const portfolio = await CompetitionPortfolio.findOne({
       userId,
@@ -1419,6 +1428,15 @@ app.post("/api/competitions/:competitionId/sell", auth, async (req, res) => {
     const { competitionId } = req.params;
     const { symbol, quantity, price } = req.body;
     const userId = req.user._id;
+
+    // Check if competition exists and has not ended
+    const competition = await Competition.findById(competitionId);
+    if (!competition) {
+      return res.status(404).json({ message: "Competition not found" });
+    }
+    if (competition.endDate && new Date(competition.endDate) < new Date()) {
+      return res.status(400).json({ message: "This competition has ended" });
+    }
 
     // Find the user's competition portfolio
     const portfolio = await CompetitionPortfolio.findOne({

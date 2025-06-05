@@ -35,6 +35,8 @@ const CompetitionDetails = () => {
   const [sellSymbol, setSellSymbol] = useState("");
   const [sellQuantity, setSellQuantity] = useState(1);
   const [sellPrice, setSellPrice] = useState("");
+  const [portfolioError, setPortfolioError] = useState("");
+  const [isEnded, setIsEnded] = useState(false);
 
   useEffect(() => {
     const fetchCompetitionData = async () => {
@@ -56,6 +58,11 @@ const CompetitionDetails = () => {
           }
         );
         setCompetitionData(competitionRes.data);
+
+        // Check if competition has ended
+        if (competitionRes.data.endDate) {
+          setIsEnded(new Date(competitionRes.data.endDate) < new Date());
+        }
 
         // Fetch competition snapshots
         const snapshotsRes = await axios.get(
@@ -86,8 +93,13 @@ const CompetitionDetails = () => {
 
     const fetchPortfolio = async () => {
       setPortfolioLoading(true);
+      setPortfolioError("");
       try {
         const token = localStorage.getItem("token");
+        if (!token) {
+          setPortfolioError("Authentication required. Please log in again.");
+          return;
+        }
         const res = await axios.get(
           `/api/competitions/${competitionId}/portfolio`,
           {
@@ -96,6 +108,10 @@ const CompetitionDetails = () => {
         );
         setPortfolio(res.data);
       } catch (err) {
+        console.error("Error fetching portfolio:", err);
+        setPortfolioError(
+          err.response?.data?.message || "Failed to fetch portfolio data"
+        );
         setPortfolio(null);
       } finally {
         setPortfolioLoading(false);
@@ -180,6 +196,77 @@ const CompetitionDetails = () => {
     }
   };
 
+  // Modify the trade section to show ended status
+  const renderTradeSection = () => {
+    if (isEnded) {
+      return (
+        <div className="competition-trade-section ended">
+          <h2>Trading Closed</h2>
+          <div className="ended-message">
+            <p>
+              This competition has ended on{" "}
+              {new Date(competitionData.endDate).toLocaleDateString()}
+            </p>
+            <p>
+              Trading is no longer available, but you can still view the final
+              results.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="competition-trade-section">
+        <h2>Trade in this Competition</h2>
+        {tradeError && <div className="error-message">{tradeError}</div>}
+        {tradeSuccess && <div className="success-message">{tradeSuccess}</div>}
+        <form onSubmit={handleBuy} style={{ marginBottom: 16 }}>
+          <h3>Buy Stock</h3>
+          <input
+            type="text"
+            placeholder="Symbol (e.g. AAPL)"
+            value={buySymbol}
+            onChange={(e) => setBuySymbol(e.target.value.toUpperCase())}
+            required
+          />
+          <input
+            type="number"
+            min="1"
+            placeholder="Quantity"
+            value={buyQuantity}
+            onChange={(e) => setBuyQuantity(e.target.value)}
+            required
+          />
+          <button type="submit" className="button-secondary">
+            Buy
+          </button>
+        </form>
+        <form onSubmit={handleSell}>
+          <h3>Sell Stock</h3>
+          <input
+            type="text"
+            placeholder="Symbol (e.g. AAPL)"
+            value={sellSymbol}
+            onChange={(e) => setSellSymbol(e.target.value.toUpperCase())}
+            required
+          />
+          <input
+            type="number"
+            min="1"
+            placeholder="Quantity"
+            value={sellQuantity}
+            onChange={(e) => setSellQuantity(e.target.value)}
+            required
+          />
+          <button type="submit" className="button-secondary">
+            Sell
+          </button>
+        </form>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="competition-details-container">
@@ -217,7 +304,10 @@ const CompetitionDetails = () => {
           >
             ← Back to Competitions
           </button>
-          <h1>{competitionData?.name || "Competition Details"}</h1>
+          <h1>
+            {competitionData?.name || "Competition Details"}
+            {isEnded && <span className="ended-badge">Ended</span>}
+          </h1>
           <div className="competition-info">
             <div className="info-item">
               <span className="label">Start Date:</span>
@@ -246,6 +336,8 @@ const CompetitionDetails = () => {
           <h2>Your Competition Portfolio</h2>
           {portfolioLoading ? (
             <div>Loading portfolio...</div>
+          ) : portfolioError ? (
+            <div className="error-message">{portfolioError}</div>
           ) : portfolio ? (
             <>
               <div>
@@ -269,55 +361,7 @@ const CompetitionDetails = () => {
           )}
         </div>
 
-        <div className="competition-trade-section">
-          <h2>Trade in this Competition</h2>
-          {tradeError && <div className="error-message">{tradeError}</div>}
-          {tradeSuccess && (
-            <div className="success-message">{tradeSuccess}</div>
-          )}
-          <form onSubmit={handleBuy} style={{ marginBottom: 16 }}>
-            <h3>Buy Stock</h3>
-            <input
-              type="text"
-              placeholder="Symbol (e.g. AAPL)"
-              value={buySymbol}
-              onChange={(e) => setBuySymbol(e.target.value.toUpperCase())}
-              required
-            />
-            <input
-              type="number"
-              min="1"
-              placeholder="Quantity"
-              value={buyQuantity}
-              onChange={(e) => setBuyQuantity(e.target.value)}
-              required
-            />
-            <button type="submit" className="button-secondary">
-              Buy
-            </button>
-          </form>
-          <form onSubmit={handleSell}>
-            <h3>Sell Stock</h3>
-            <input
-              type="text"
-              placeholder="Symbol (e.g. AAPL)"
-              value={sellSymbol}
-              onChange={(e) => setSellSymbol(e.target.value.toUpperCase())}
-              required
-            />
-            <input
-              type="number"
-              min="1"
-              placeholder="Quantity"
-              value={sellQuantity}
-              onChange={(e) => setSellQuantity(e.target.value)}
-              required
-            />
-            <button type="submit" className="button-secondary">
-              Sell
-            </button>
-          </form>
-        </div>
+        {renderTradeSection()}
 
         <div className="competition-graph-section">
           <h2>Portfolio Performance</h2>

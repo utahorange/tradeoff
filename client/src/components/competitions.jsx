@@ -169,6 +169,31 @@ const Competitions = () => {
     setLoading(true);
     setError(null);
 
+    // Validation: End date must not be before today
+    if (createGameForm.endDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const end = new Date(createGameForm.endDate);
+      end.setHours(0, 0, 0, 0);
+      if (end < today) {
+        setLoading(false);
+        setError("End date cannot be before today.");
+        return;
+      }
+    }
+    // Validation: Start date cannot be after today
+    if (createGameForm.startDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const start = new Date(createGameForm.startDate);
+      start.setHours(0, 0, 0, 0);
+      if (start > today) {
+        setLoading(false);
+        setError("Start date cannot be after today.");
+        return;
+      }
+    }
+
     try {
       const token = localStorage.getItem("token");
       console.log("Token from localStorage:", token ? "exists" : "missing");
@@ -333,9 +358,16 @@ const Competitions = () => {
   const handleDeleteGame = async (gameId) => {
     console.log("[DELETE GAME] Starting delete process for gameId:", gameId);
     console.log("[DELETE GAME] Current user:", currentUsername);
-    console.log("[DELETE GAME] Game to delete:", myGames.find(g => g.id === gameId));
-    
-    if (!window.confirm("Are you sure you want to delete this competition? This action cannot be undone and will remove the competition for all participants.")) {
+    console.log(
+      "[DELETE GAME] Game to delete:",
+      myGames.find((g) => g.id === gameId)
+    );
+
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this competition? This action cannot be undone and will remove the competition for all participants."
+      )
+    ) {
       return;
     }
 
@@ -356,13 +388,19 @@ const Competitions = () => {
         },
       };
 
-      console.log("[DELETE GAME] Making DELETE request to:", `/api/competitions/${gameId}`);
-      
+      console.log(
+        "[DELETE GAME] Making DELETE request to:",
+        `/api/competitions/${gameId}`
+      );
+
       const response = await api.delete(`/api/competitions/${gameId}`, config);
       console.log("[DELETE GAME] Response:", response);
 
       // Refresh my games list
-      const myGamesResponse = await api.get("/api/competitions/my-games", config);
+      const myGamesResponse = await api.get(
+        "/api/competitions/my-games",
+        config
+      );
       setMyGames(myGamesResponse.data);
 
       alert("Successfully deleted the competition!");
@@ -373,7 +411,7 @@ const Competitions = () => {
         statusText: err.response?.statusText,
         data: err.response?.data,
         message: err.message,
-        gameId: gameId
+        gameId: gameId,
       });
       setError(
         err.response?.data?.message ||
@@ -382,6 +420,92 @@ const Competitions = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper: is competition ended
+  const isCompetitionEnded = (competition) => {
+    if (!competition.endDate) return false;
+    // Accept both string and Date
+    const end = new Date(competition.endDate);
+    const now = new Date();
+    // Only compare date part (ignore time)
+    end.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+    return end < now;
+  };
+
+  // My Games: only not ended
+  const myGamesOngoing = myGames.filter((game) => !isCompetitionEnded(game));
+  // Past Games: only ended
+  const myGamesPast = myGames.filter((game) => isCompetitionEnded(game));
+
+  // Modify the competition card rendering
+  const renderCompetitionCard = (competition) => {
+    const hasEnded = isCompetitionEnded(competition);
+    return (
+      <div
+        className={`competition-card ${hasEnded ? "ended" : ""}`}
+        key={competition._id}
+      >
+        <div className="competition-card-header">
+          <h3>{competition.name}</h3>
+          {hasEnded && <span className="ended-badge">Ended</span>}
+        </div>
+        <div className="competition-card-details">
+          <p>
+            <FaUser /> Host: {competition.host}
+          </p>
+          <p>
+            <FaCalendarAlt /> Start:{" "}
+            {new Date(competition.startDate).toLocaleDateString()}
+          </p>
+          <p>
+            <FaCalendarAlt /> End:{" "}
+            {competition.endDate
+              ? new Date(competition.endDate).toLocaleDateString()
+              : "No end date"}
+          </p>
+          <p>
+            <FaUsers /> Players: {competition.players}
+          </p>
+          <p>
+            <FaDollarSign /> Starting Cash: $
+            {competition.startingCash.toLocaleString()}
+          </p>
+          <p>
+            <FaInfoCircle /> {competition.details}
+          </p>
+        </div>
+        <div className="competition-card-actions">
+          {activeTab === "myGames" ? (
+            <>
+              <button
+                onClick={() => navigate(`/competitions/${competition._id}`)}
+                className="button-primary"
+              >
+                View Details
+              </button>
+              {!hasEnded && (
+                <button
+                  onClick={() => handleLeaveGame(competition._id)}
+                  className="button-secondary"
+                >
+                  Leave Game
+                </button>
+              )}
+            </>
+          ) : activeTab === "joinGame" ? (
+            <button
+              onClick={() => handleJoinGame(competition._id)}
+              className="button-primary"
+              disabled={hasEnded}
+            >
+              {hasEnded ? "Competition Ended" : "Join Game"}
+            </button>
+          ) : null}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -415,14 +539,14 @@ const Competitions = () => {
             <div style={{ width: 160 }} /> {/* Spacer for alignment */}
           </div>
           <div className="competitions-tabs">
-            <div
+            {/* <div
               className={`competitions-tab ${
                 activeTab === "leaderboard" ? "active" : ""
               }`}
               onClick={() => setActiveTab("leaderboard")}
             >
               Leaderboard
-            </div>
+            </div> */}
             <div
               className={`competitions-tab ${
                 activeTab === "myGames" ? "active" : ""
@@ -441,6 +565,14 @@ const Competitions = () => {
             </div>
             <div
               className={`competitions-tab ${
+                activeTab === "pastGames" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("pastGames")}
+            >
+              Past Games
+            </div>
+            <div
+              className={`competitions-tab ${
                 activeTab === "createGame" ? "active" : ""
               }`}
               onClick={() => setActiveTab("createGame")}
@@ -449,60 +581,11 @@ const Competitions = () => {
             </div>
           </div>
 
-          {/* Leaderboard Tab */}
-          {activeTab === "leaderboard" && (
-            <div className="competitions-body">
-              <div className="overflow-x-auto">
-                {Array.isArray(leaderboardData) &&
-                leaderboardData.length > 0 ? (
-                  <table className="leaderboard-table">
-                    <thead>
-                      <tr>
-                        <th>Rank</th>
-                        <th>User</th>
-                        <th>Account Value</th>
-                        <th>Today's Change</th>
-                        <th>Overall Change</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {leaderboardData.map((user) => (
-                        <tr
-                          key={user.rank}
-                          className={user.isCurrentUser ? "current-user" : ""}
-                        >
-                          <td>{user.rank}</td>
-                          <td>
-                            {user.username}{" "}
-                            {user.isCurrentUser && <span>(You)</span>}
-                          </td>
-                          <td>{user.accountValue}</td>
-                          <td className="positive">{user.todayChange}</td>
-                          <td className="positive">{user.overallChange}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <div className="empty-state">
-                    <p>
-                      No leaderboard data available. Join a competition to get
-                      started!
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div className="mt-4 text-right">
-                <button className="button-secondary">View All Records →</button>
-              </div>
-            </div>
-          )}
-
           {/* My Games Tab */}
           {activeTab === "myGames" && (
             <div className="competitions-body">
               <div className="my-games-list">
-                {myGames.map((game) => (
+                {myGamesOngoing.map((game) => (
                   <div key={game.id} className="game-card">
                     <div className="game-card-header">
                       <div>
@@ -517,7 +600,6 @@ const Competitions = () => {
                         >
                           Details
                         </button>
-                        {/* Show Delete button only for games the user created */}
                         {game.host === currentUsername && (
                           <button
                             className="button-danger"
@@ -526,7 +608,6 @@ const Competitions = () => {
                             Delete
                           </button>
                         )}
-                        {/* Always show Leave button for all games */}
                         <button
                           className="button-danger"
                           onClick={() => handleLeaveGame(game.id)}
@@ -571,6 +652,11 @@ const Competitions = () => {
                     </div>
                   </div>
                 ))}
+                {myGamesOngoing.length === 0 && (
+                  <div className="empty-state">
+                    <p>No ongoing games. Join or create a new game!</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -654,6 +740,74 @@ const Competitions = () => {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Past Games Tab */}
+          {activeTab === "pastGames" && (
+            <div className="competitions-body">
+              <div className="my-games-list">
+                {myGamesPast.map((game) => (
+                  <div key={game.id} className="game-card ended">
+                    <div className="game-card-header">
+                      <div>
+                        <h3 className="game-card-title">
+                          {game.name} <span className="ended-badge">Ended</span>
+                        </h3>
+                        <p className="game-card-host">by {game.host}</p>
+                        <p className="mt-2">{game.details}</p>
+                      </div>
+                      <div className="game-card-actions">
+                        <button
+                          className="button-secondary"
+                          onClick={() => navigate(`/competitions/${game.id}`)}
+                        >
+                          Details
+                        </button>
+                      </div>
+                    </div>
+                    <div className="game-card-details">
+                      <div className="game-detail">
+                        <span className="game-detail-label">
+                          <FaCalendarAlt className="mr-1" /> Start Date
+                        </span>
+                        <span className="game-detail-value">
+                          {game.startDate}
+                        </span>
+                      </div>
+                      <div className="game-detail">
+                        <span className="game-detail-label">
+                          <FaCalendarAlt className="mr-1" /> End Date
+                        </span>
+                        <span className="game-detail-value">
+                          {game.endDate}
+                        </span>
+                      </div>
+                      <div className="game-detail">
+                        <span className="game-detail-label">
+                          <FaUsers className="mr-1" /> # of Players
+                        </span>
+                        <span className="game-detail-value">
+                          {game.players}
+                        </span>
+                      </div>
+                      <div className="game-detail">
+                        <span className="game-detail-label">
+                          <FaDollarSign className="mr-1" /> Starting Cash
+                        </span>
+                        <span className="game-detail-value">
+                          {game.startingCash}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {myGamesPast.length === 0 && (
+                  <div className="empty-state">
+                    <p>No past games yet.</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

@@ -23,6 +23,18 @@
   font-weight: 600;
   margin: 16px 0;
   color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.competition-header .ended-badge {
+  background-color: #dc3545;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: bold;
 }
 
 .competition-info {
@@ -216,6 +228,30 @@
 
 .button-secondary:hover {
   background: #353945;
+}
+
+.competition-trade-section.ended {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.ended-message {
+  text-align: center;
+  color: #6c757d;
+  padding: 20px;
+}
+
+.ended-message p {
+  margin: 8px 0;
+  font-size: 1.1rem;
+}
+
+.ended-message p:first-child {
+  color: #dc3545;
+  font-weight: bold;
 }
 
 @media (max-width: 768px) {
