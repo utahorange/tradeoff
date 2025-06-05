@@ -63,14 +63,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24px 0 16px 0;
+    padding: 16px 0 12px 0;
   }
   
   .dashboard-search {
     background: #23262f;
     border: none;
     border-radius: 8px;
-    padding: 8px 16px;
+    padding: 4px 12px;
     color: #fff;
     width: 220px;
     font-size: 1rem;
@@ -85,24 +85,28 @@
   .user-profile-container {
     display: flex;
     align-items: center;
-    gap: 0rem; /* Reduce the gap for closer spacing */
+    /* gap: 0.5rem; Reduce the gap for closer spacing */
+  }
+
+  .user-profile-container .profile-icon {
+    margin-right: -5px;
   }
   
   .user-profile-container .username {
-    margin: 0; /* Remove default h2 margin */
-    font-size: 1.1rem; /* Optional: adjust size for better fit */
-    font-weight: 1000;   /* Optional: adjust weight for style */
+    margin: 0;
+    font-size: 1.1rem; 
+    font-weight: 1000;
   }
 
   .dashboard-topbar-icons {
     display: flex;
     align-items: center;
-    gap: 5px;
-    margin-left: 18px;
-    font-size: 1.3rem;
-    gap: 30px;
+    margin-left: 12px;
+    font-size: 1rem;
+    gap: 20px;
     cursor: pointer;
     transition: color 0.2s;
+    margin-top: -16px;
   }
   
   .user-profile-container:hover .username,
@@ -388,8 +392,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 16px;
     margin-bottom: 16px;
-    margin-top: 64px;
     padding: 0 16px;
   }
   
