@@ -54,5 +54,4 @@ const competitionSchema = new mongoose.Schema({
 
 const Competition = mongoose.model("Competition", competitionSchema);
 
-// Note: PortfolioSnapshots are now associated with competitions via the PortfolioSnapshot model's competitionId field.
-// To fetch all snapshots for a competition, query PortfolioSnapshot with { competitionId: this._id }
+module.exports = Competition;

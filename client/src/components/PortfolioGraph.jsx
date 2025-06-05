@@ -1,163 +1,151 @@
 // ... existing imports ...
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Line } from 'react-chartjs-2';
+import React from "react";
+import { Line } from "react-chartjs-2";
 import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend
-} from 'chart.js';
-import './PortfolioGraph.css';
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import "./PortfolioGraph.css";
 
 // Register ChartJS components
 ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
 );
 
-const PortfolioGraph = ({ hasHoldings }) => {
-    const [timeframe, setTimeframe] = useState('1W');
-    const [portfolioData, setPortfolioData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+// Helper to get all unique sorted dates from all users' snapshots
+function getAllDates(usersData) {
+  const dateSet = new Set();
+  usersData.forEach((user) => {
+    user.snapshots.forEach((snap) => {
+      // Use only the date part for x-axis
+      dateSet.add(
+        new Date(snap.date || snap.timestamp).toISOString().split("T")[0]
+      );
+    });
+  });
+  return Array.from(dateSet).sort();
+}
 
-    useEffect(() => {
-        const fetchPortfolioHistory = async () => {
-            if (!hasHoldings) {
-                setLoading(false);
-                return;
-            }
-            try {
-                const token = localStorage.getItem('token');
-                const response = await axios.get(`http://localhost:8080/api/portfolio/history?timeframe=${timeframe}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-                setPortfolioData(response.data.snapshots);
-            } catch (err) {
-                console.error('Error fetching portfolio history:', err);
-                setError('Failed to fetch portfolio history');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchPortfolioHistory();
-    }, [timeframe, hasHoldings]);
-
-    if (!hasHoldings) {
-        return (
-            <div className="portfolio-graph card">
-                <div className="empty-state-message">
-                    <h3>No Portfolio Data</h3>
-                    <p>Start investing to see your portfolio performance over time!</p>
-                </div>
-            </div>
-        );
+// Helper to get value for a user on a given date (or last known value)
+function getValueOnDate(snapshots, date) {
+  let lastValue = null;
+  for (const snap of snapshots) {
+    const snapDate = new Date(snap.date || snap.timestamp)
+      .toISOString()
+      .split("T")[0];
+    if (snapDate <= date) {
+      lastValue = snap.value || snap.totalValue;
+    } else {
+      break;
     }
+  }
+  return lastValue;
+}
 
-    if (loading) return <div className="portfolio-graph card">Loading...</div>;
-    if (error) return <div className="portfolio-graph card" style={{ color: 'red' }}>{error}</div>;
-
-    const chartData = {
-        labels: portfolioData.map(snapshot =>
-            new Date(snapshot.timestamp).toLocaleDateString()
-        ),
-        datasets: [
-            {
-                label: 'Portfolio Value',
-                data: portfolioData.map(snapshot => snapshot.totalValue),
-                borderColor: 'rgba(66,153,225,1)', // blue
-                backgroundColor: 'rgba(66,153,225,0.10)', // subtle fill
-                pointBackgroundColor: 'rgba(66,153,225,1)',
-                pointBorderColor: '#23262f',
-                tension: 0, // smooth curve
-                fill: true,
-            }
-        ]
-    };
-
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        elements: {
-            line: {
-                tension: 0 // This removes the curve fitting and makes straight lines
-            }
-        },
-        plugins: {
-            legend: {
-                position: 'top',
-                labels: {
-                    color: '#fff'
-                }
-            },
-            title: {
-                display: true,
-                text: `Portfolio Value Over Time (${timeframe})`,
-                color: '#fff',
-                font: {
-                    size: 16,
-                    weight: 'bold'
-                }
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: false,
-                ticks: {
-                    color: '#fff',
-                    callback: function(value) {
-                        return '$' + value.toLocaleString();
-                    }
-                },
-                grid: {
-                    color: '#444'
-                }
-            },
-            x: {
-                ticks: {
-                    color: '#fff'
-                },
-                grid: {
-                    color: '#444'
-                }
-            }
-        }
-    };
-
+const PortfolioGraph = ({ usersData }) => {
+  if (!usersData || usersData.length === 0) {
     return (
-        <div className="portfolio-graph card">
-            <div className="portfolio-graph-header">
-                <h3>Portfolio Value Over Time</h3>
-                <div className="timeframe-selector">
-                    {['1D', '1W', '1M', '1Y', 'ALL'].map((tf) => (
-                        <button
-                            key={tf}
-                            onClick={() => setTimeframe(tf)}
-                            className={timeframe === tf ? 'active' : ''}
-                        >
-                            {tf}
-                        </button>
-                    ))}
-                </div>
-            </div>
-            <div className="chart-container">
-                <Line data={chartData} options={chartOptions} />
-            </div>
+      <div className="portfolio-graph card">
+        <div className="empty-state-message">
+          <h3>No Portfolio Data</h3>
+          <p>Start investing to see your portfolio performance over time!</p>
         </div>
+      </div>
     );
+  }
+
+  // Get all unique dates across all users
+  const allDates = getAllDates(usersData);
+
+  // Build datasets for each user
+  const datasets = usersData.map((user) => {
+    // For each date, get the user's value (or last known value)
+    let lastKnown = null;
+    const data = allDates.map((date) => {
+      const value = getValueOnDate(user.snapshots, date);
+      if (value !== null && value !== undefined) lastKnown = value;
+      return lastKnown;
+    });
+    return {
+      label: user.username,
+      data,
+      borderColor: user.color,
+      backgroundColor: user.color + "33", // semi-transparent fill
+      pointBackgroundColor: user.color,
+      pointBorderColor: "#23262f",
+      tension: 0,
+      fill: false,
+    };
+  });
+
+  const chartData = {
+    labels: allDates,
+    datasets,
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top",
+        labels: {
+          color: "#fff",
+        },
+      },
+      title: {
+        display: true,
+        text: "Portfolio Value Over Time",
+        color: "#fff",
+        font: {
+          size: 16,
+          weight: "bold",
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: false,
+        ticks: {
+          color: "#fff",
+          callback: function (value) {
+            return "$" + value.toLocaleString();
+          },
+        },
+        grid: {
+          color: "#444",
+        },
+      },
+      x: {
+        ticks: {
+          color: "#fff",
+        },
+        grid: {
+          color: "#444",
+        },
+      },
+    },
+  };
+
+  return (
+    <div className="portfolio-graph card">
+      <div className="chart-container">
+        <Line data={chartData} options={chartOptions} />
+      </div>
+    </div>
+  );
 };
 
 export default PortfolioGraph;

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import './StockDetail.css';
-import StockSearch from './StockSearch';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import "./StockDetail.css";
+import StockSearch from "./StockSearch";
 import { CgLogOut } from "react-icons/cg";
 import { FaUserCircle } from "react-icons/fa";
-import Navbar from './Navbar';
+import Navbar from "./Navbar";
 
 const StockDetail = () => {
     const { symbol } = useParams();
@@ -342,5 +342,4 @@ const StockDetail = () => {
         </div>
     );
 };
-
-export default StockDetail; 
+export default StockDetail;
