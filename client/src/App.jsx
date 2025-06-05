@@ -59,8 +59,14 @@ const App = () => {
               />
               <Route path="/stock/:symbol" element={<StockDetail />} />
               <Route path="/friends" element={<Friends />} />
-              <Route path="/stats" element={<StockStats />} />
-              <Route path="/competitions" element={<Competitions />} />
+              <Route
+                path="/stats/:username"
+                element={<StockStats setLoggedInUser={setLoggedInUser} />}
+              />
+              <Route
+                path="/competitions"
+                element={<Competitions setLoggedInUser={setLoggedInUser} />}
+              />
               <Route
                 path="/competitions/:competitionId"
                 element={<CompetitionDetails />}

@@ -8,10 +8,14 @@ import {
   FaDollarSign,
   FaTrophy,
   FaChartLine,
+  FaUserCircle,
 } from "react-icons/fa";
+import { CgLogOut } from "react-icons/cg";
 import axios from "axios";
 import Navbar from "./Navbar";
+import StockSearch from "./StockSearch";
 import "./Competitions.css";
+import "./Home.css"; // Import Home.css for dashboard styles
 import { useNavigate } from "react-router-dom";
 
 // Create an axios instance with baseURL
@@ -22,10 +26,16 @@ const api = axios.create({
   },
 });
 
-const Competitions = () => {
+const Competitions = ({ setLoggedInUser }) => {
   console.log("Competitions component mounting");
   // State for active tab
-  const [activeTab, setActiveTab] = useState("leaderboard");
+  const [activeTab, setActiveTab] = useState("myGames");
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    setLoggedInUser(null);
+  };
 
   // State for data
   const [leaderboardData, setLeaderboardData] = useState([]);
@@ -509,35 +519,56 @@ const Competitions = () => {
   };
 
   return (
-    <div className="competitions-container">
+    <div className="dashboard-root">
       <Navbar />
-      {loading && (
-        <div className="loading-overlay">
-          <div className="loading-spinner"></div>
-          <p>Loading...</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="error-message">
-          <p>{error}</p>
-          <button onClick={() => setError(null)}>Dismiss</button>
-        </div>
-      )}
-
-      <div className="competitions-content">
-        <div className="competitions-card">
-          {/* Header with navigation tabs and back button */}
-          <div className="competitions-header">
-            <button
-              className="back-button"
-              onClick={() => navigate("/competitions")}
-            >
-              ← Back to Competitions
-            </button>
-            <h1>Competitions</h1>
-            <div style={{ width: 160 }} /> {/* Spacer for alignment */}
+      <main className="dashboard-main">
+        {/* Top Bar */}
+        <header className="dashboard-topbar">
+          <div className="search-container">
+            <StockSearch />
           </div>
+          <div className="dashboard-topbar-icons">
+            <CgLogOut 
+              className="logout-icon" 
+              onClick={handleLogout}
+            />
+            <div className="user-profile-container"
+            onClick={() => {
+              navigate('/profile');
+            }}>
+              <FaUserCircle className="profile-icon"/>
+              <h2 className="username">{localStorage.getItem('username')}</h2>
+            </div>
+          </div>
+        </header>
+
+        {loading && (
+          <div className="loading-overlay">
+            <div className="loading-spinner"></div>
+            <p>Loading...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="error-message">
+            <p>{error}</p>
+            <button onClick={() => setError(null)}>Dismiss</button>
+          </div>
+        )}
+
+        <div className="competitions-content" style={{ marginLeft: 0 }}>
+          <div className="competitions-card">
+            {/* Header with navigation tabs and back button */}
+            <div className="competitions-header">
+              <button
+                className="back-button"
+                onClick={() => navigate("/competitions")}
+              >
+                ← Back to Competitions
+              </button>
+              <h1>Competitions</h1>
+              <div style={{ width: 160 }} /> {/* Spacer for alignment */}
+            </div>
           <div className="competitions-tabs">
             {/* <div
               className={`competitions-tab ${
@@ -923,7 +954,8 @@ const Competitions = () => {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };

@@ -23,6 +23,9 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
+app.use('/api/user', userRoutes);
+app.use('/api/profile-picture', profilePictureRoutes);
+
 app.use("/api/user", userRoutes);
 // app.use('/api/user', userRoutes);
 app.use("/api/profile-picture", profilePictureRoutes);
@@ -1155,17 +1158,19 @@ app.get("/api/portfolio/current-value", auth, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Get current prices for all holdings
     logDatabaseQuery(
       "READ",
       "Holding",
       `Getting all holdings for user ${req.user._id}`
     );
     const holdings = await Holding.find({ user: req.user._id });
-    let totalValue = 0;
     const holdingsWithCurrentPrice = [];
+    let totalValue = 0;
 
     for (const holding of holdings) {
       try {
+        console.log(`Fetching price for ${holding.stockSymbol}`);
         const quote = await finnhubGet("quote", {
           symbol: holding.stockSymbol,
         });
@@ -1179,8 +1184,7 @@ app.get("/api/portfolio/current-value", auth, async (req, res) => {
           purchasePrice: holding.stockPrice,
           currentPrice: currentPrice,
           value: value,
-          change:
-            ((currentPrice - holding.stockPrice) / holding.stockPrice) * 100,
+          change: ((currentPrice - holding.stockPrice) / holding.stockPrice) * 100,
         });
       } catch (error) {
         console.error(

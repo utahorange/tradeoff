@@ -92,7 +92,7 @@ const UserProfile = ({ setLoggedInUser }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:8080/api/change-password', {
+            const response = await axios.post('http://localhost:8080/api/user/change-password', {
                 currentPassword,
                 newPassword
             }, {
@@ -114,16 +114,6 @@ const UserProfile = ({ setLoggedInUser }) => {
         <div className="dashboard-root">
             <Navbar />
             <main className="dashboard-main">
-                <header className="dashboard-topbar">
-                    <div className="search-container">
-                        <StockSearch />
-                    </div>
-                    <div className="dashboard-topbar-icons">
-                        <CgLogOut className="logout-icon" onClick={handleLogout} />
-                        <FaUserCircle className="profile-icon" onClick={() => navigate('/profile')} />
-                    </div>
-                </header>
-
                 <div className="profile-content">
                     {message && <div className="success-message">{message}</div>}
                     {error && <div className="error-message">{error}</div>}
@@ -140,6 +130,7 @@ const UserProfile = ({ setLoggedInUser }) => {
                                         src={profilePicture} 
                                         alt="Profile" 
                                         className="profile-picture"
+                                        onError={(e) => { e.target.onerror = null; setProfilePicture(null); }}
                                     />
                                 ) : (
                                     <FaUserCircle className="profile-icon" style={{ width: '100%', height: '100%' }} />
