@@ -17,6 +17,7 @@ const Home = ({setLoggedInUser}) => {
   const [balance, setBalance] = useState(0);
   const [friendRequests, setFriendRequests] = useState([]);
   const [friends, setFriends] = useState([]);
+  const [portfolioHistory, setPortfolioHistory] = useState([]);
   
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -28,7 +29,7 @@ const Home = ({setLoggedInUser}) => {
       const fetchData = async () => {
           try {
               const token = localStorage.getItem('token');
-              const [holdingsRes, balanceRes, friendRequestsRes, friendsRes] = await Promise.all([
+              const [holdingsRes, balanceRes, friendRequestsRes, friendsRes, portfolioHistoryRes] = await Promise.all([
                   axios.get('http://localhost:8080/api/holdings', {
                       headers: { Authorization: `Bearer ${token}` }
                   }),
@@ -40,6 +41,9 @@ const Home = ({setLoggedInUser}) => {
                   }),
                   axios.get('http://localhost:8080/api/friends', {
                       headers: { Authorization: `Bearer ${token}` }
+                  }),
+                  axios.get('http://localhost:8080/api/portfolio/history?timeframe=ALL', {
+                      headers: { Authorization: `Bearer ${token}` }
                   })
               ]);
               
@@ -47,6 +51,22 @@ const Home = ({setLoggedInUser}) => {
               setBalance(balanceRes.data.balance);
               setFriendRequests(friendRequestsRes.data.requests || []);
               setFriends(friendsRes.data.friends || []);
+              
+              // Format portfolio history for PortfolioGraph
+              const currentUsername = localStorage.getItem('username');
+              if (portfolioHistoryRes.data.snapshots && portfolioHistoryRes.data.snapshots.length > 0) {
+                setPortfolioHistory([{
+                  username: currentUsername,
+                  isCurrentUser: true,
+                  color: "#4ade80",
+                  snapshots: portfolioHistoryRes.data.snapshots.map(snapshot => ({
+                    date: snapshot.timestamp,
+                    value: snapshot.totalValue
+                  }))
+                }]);
+              } else {
+                setPortfolioHistory([]);
+              }
           } catch (err) {
               console.error('Error fetching data:', err);
               setError('Failed to fetch data');
@@ -119,7 +139,7 @@ const Home = ({setLoggedInUser}) => {
           )}
           {/* Portfolio Value Over Time Graph - Centered and Large */}
           <div className="dashboard-portfolio-graph-center">
-            <PortfolioGraph hasHoldings={holdings.length > 0} />
+            <PortfolioGraph usersData={portfolioHistory} />
           </div>
         </main>
         {/* Right Sidebar */}
