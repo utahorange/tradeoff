@@ -144,7 +144,7 @@ const Home = ({ setLoggedInUser }) => {
         )}
         {/* Portfolio Value Over Time Graph - Centered and Large */}
         <div className="dashboard-portfolio-graph-center">
-          <PortfolioGraph hasHoldings={holdings.length > 0} />
+          <PortfolioGraph usersData={portfolioHistory} />
         </div>
       </main>
       {/* Right Sidebar */}
