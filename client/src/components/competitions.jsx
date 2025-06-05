@@ -32,8 +32,8 @@ const Competitions = ({ setLoggedInUser }) => {
   const [activeTab, setActiveTab] = useState("myGames");
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
     setLoggedInUser(null);
   };
 
@@ -528,16 +528,15 @@ const Competitions = ({ setLoggedInUser }) => {
             <StockSearch />
           </div>
           <div className="dashboard-topbar-icons">
-            <CgLogOut 
-              className="logout-icon" 
-              onClick={handleLogout}
-            />
-            <div className="user-profile-container"
-            onClick={() => {
-              navigate('/profile');
-            }}>
-              <FaUserCircle className="profile-icon"/>
-              <h2 className="username">{localStorage.getItem('username')}</h2>
+            <CgLogOut className="logout-icon" onClick={handleLogout} />
+            <div
+              className="user-profile-container"
+              onClick={() => {
+                navigate("/profile");
+              }}
+            >
+              <FaUserCircle className="profile-icon" />
+              <h2 className="username">{localStorage.getItem("username")}</h2>
             </div>
           </div>
         </header>
@@ -560,17 +559,11 @@ const Competitions = ({ setLoggedInUser }) => {
                       <div className="competitions-card" style={{ overflow: 'visible', height: 'auto' }}>
             {/* Header with navigation tabs and back button */}
             <div className="competitions-header">
-              <button
-                className="back-button"
-                onClick={() => navigate("/competitions")}
-              >
-                ← Back to Competitions
-              </button>
               <h1>Competitions</h1>
               <div style={{ width: 160 }} /> {/* Spacer for alignment */}
             </div>
-          <div className="competitions-tabs">
-            {/* <div
+            <div className="competitions-tabs">
+              {/* <div
               className={`competitions-tab ${
                 activeTab === "leaderboard" ? "active" : ""
               }`}
@@ -578,382 +571,385 @@ const Competitions = ({ setLoggedInUser }) => {
             >
               Leaderboard
             </div> */}
-            <div
-              className={`competitions-tab ${
-                activeTab === "myGames" ? "active" : ""
-              }`}
-              onClick={() => setActiveTab("myGames")}
-            >
-              My Games
+              <div
+                className={`competitions-tab ${
+                  activeTab === "myGames" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("myGames")}
+              >
+                My Games
+              </div>
+              <div
+                className={`competitions-tab ${
+                  activeTab === "joinGame" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("joinGame")}
+              >
+                Join Game
+              </div>
+              <div
+                className={`competitions-tab ${
+                  activeTab === "pastGames" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("pastGames")}
+              >
+                Past Games
+              </div>
+              <div
+                className={`competitions-tab ${
+                  activeTab === "createGame" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("createGame")}
+              >
+                Create Game
+              </div>
             </div>
-            <div
-              className={`competitions-tab ${
-                activeTab === "joinGame" ? "active" : ""
-              }`}
-              onClick={() => setActiveTab("joinGame")}
-            >
-              Join Game
-            </div>
-            <div
-              className={`competitions-tab ${
-                activeTab === "pastGames" ? "active" : ""
-              }`}
-              onClick={() => setActiveTab("pastGames")}
-            >
-              Past Games
-            </div>
-            <div
-              className={`competitions-tab ${
-                activeTab === "createGame" ? "active" : ""
-              }`}
-              onClick={() => setActiveTab("createGame")}
-            >
-              Create Game
-            </div>
-          </div>
 
-          {/* My Games Tab */}
-          {activeTab === "myGames" && (
-            <div className="competitions-body">
-              <div className="my-games-list">
-                {myGamesOngoing.map((game) => (
-                  <div key={game.id} className="game-card">
-                    <div className="game-card-header">
-                      <div>
-                        <h3 className="game-card-title">{game.name}</h3>
-                        <p className="game-card-host">by {game.host}</p>
-                        <p className="mt-2">{game.details}</p>
-                      </div>
-                      <div className="game-card-actions">
-                        <button
-                          className="button-secondary"
-                          onClick={() => navigate(`/competitions/${game.id}`)}
-                        >
-                          Details
-                        </button>
-                        {game.host === currentUsername && (
+            {/* My Games Tab */}
+            {activeTab === "myGames" && (
+              <div className="competitions-body">
+                <div className="my-games-list">
+                  {myGamesOngoing.map((game) => (
+                    <div key={game.id} className="game-card">
+                      <div className="game-card-header">
+                        <div>
+                          <h3 className="game-card-title">{game.name}</h3>
+                          <p className="game-card-host">by {game.host}</p>
+                          <p className="mt-2">{game.details}</p>
+                        </div>
+                        <div className="game-card-actions">
                           <button
-                            className="button-danger"
-                            onClick={() => handleDeleteGame(game.id)}
+                            className="button-secondary"
+                            onClick={() => navigate(`/competitions/${game.id}`)}
                           >
-                            Delete
+                            Details
                           </button>
-                        )}
-                        <button
-                          className="button-danger"
-                          onClick={() => handleLeaveGame(game.id)}
-                        >
-                          Leave
-                        </button>
-                      </div>
-                    </div>
-                    <div className="game-card-details">
-                      <div className="game-detail">
-                        <span className="game-detail-label">
-                          <FaCalendarAlt className="mr-1" /> Start Date
-                        </span>
-                        <span className="game-detail-value">
-                          {game.startDate}
-                        </span>
-                      </div>
-                      <div className="game-detail">
-                        <span className="game-detail-label">
-                          <FaCalendarAlt className="mr-1" /> End Date
-                        </span>
-                        <span className="game-detail-value">
-                          {game.endDate}
-                        </span>
-                      </div>
-                      <div className="game-detail">
-                        <span className="game-detail-label">
-                          <FaUsers className="mr-1" /> # of Players
-                        </span>
-                        <span className="game-detail-value">
-                          {game.players}
-                        </span>
-                      </div>
-                      <div className="game-detail">
-                        <span className="game-detail-label">
-                          <FaDollarSign className="mr-1" /> Starting Cash
-                        </span>
-                        <span className="game-detail-value">
-                          {game.startingCash}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {myGamesOngoing.length === 0 && (
-                  <div className="empty-state">
-                    <p>No ongoing games. Join or create a new game!</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Join Game Tab */}
-          {activeTab === "joinGame" && (
-            <div className="competitions-body">
-              <div className="search-bar">
-                <input
-                  type="text"
-                  placeholder="Search for a game name or creator"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <div className="search-icon">
-                  <FaSearch />
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="leaderboard-table">
-                  <thead>
-                    <tr>
-                      <th>Game Name</th>
-                      <th>Details</th>
-                      <th>Start Date</th>
-                      <th>End Date</th>
-                      <th># of Players</th>
-                      <th>Starting Cash</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredGames.map((game) => (
-                      <tr key={game.id}>
-                        <td>
-                          <div className="flex items-center">
-                            {game.locked && <span className="mr-2">🔒</span>}
-                            <div>{game.name}</div>
-                          </div>
-                          <div className="game-card-host">by {game.host}</div>
-                        </td>
-                        <td>
-                          <button className="button-secondary">Details</button>
-                        </td>
-                        <td>{game.startDate}</td>
-                        <td>{game.endDate}</td>
-                        <td>{game.players}</td>
-                        <td>{game.startingCash}</td>
-                        <td className="text-right">
-                          {game.joined ? (
-                            <span className="joined">Joined</span>
-                          ) : game.locked ? (
+                          {game.host === currentUsername && (
                             <button
-                              className="join-button"
-                              disabled
-                              title="This game is locked"
+                              className="button-danger"
+                              onClick={() => handleDeleteGame(game.id)}
                             >
-                              Join
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleJoinGame(game.id)}
-                              className="join-button"
-                            >
-                              Join
+                              Delete
                             </button>
                           )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          <button
+                            className="button-danger"
+                            onClick={() => handleLeaveGame(game.id)}
+                          >
+                            Leave
+                          </button>
+                        </div>
+                      </div>
+                      <div className="game-card-details">
+                        <div className="game-detail">
+                          <span className="game-detail-label">
+                            <FaCalendarAlt className="mr-1" /> Start Date
+                          </span>
+                          <span className="game-detail-value">
+                            {game.startDate}
+                          </span>
+                        </div>
+                        <div className="game-detail">
+                          <span className="game-detail-label">
+                            <FaCalendarAlt className="mr-1" /> End Date
+                          </span>
+                          <span className="game-detail-value">
+                            {game.endDate}
+                          </span>
+                        </div>
+                        <div className="game-detail">
+                          <span className="game-detail-label">
+                            <FaUsers className="mr-1" /> # of Players
+                          </span>
+                          <span className="game-detail-value">
+                            {game.players}
+                          </span>
+                        </div>
+                        <div className="game-detail">
+                          <span className="game-detail-label">
+                            <FaDollarSign className="mr-1" /> Starting Cash
+                          </span>
+                          <span className="game-detail-value">
+                            {game.startingCash}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {myGamesOngoing.length === 0 && (
+                    <div className="empty-state">
+                      <p>No ongoing games. Join or create a new game!</p>
+                    </div>
+                  )}
+                </div>
               </div>
+            )}
 
-              {filteredGames.length === 0 && (
-                <div className="empty-state">
-                  <div className="empty-state-message">
-                    <h3>No Games Found</h3>
-                    <p>No games found matching your search criteria.</p>
+            {/* Join Game Tab */}
+            {activeTab === "joinGame" && (
+              <div className="competitions-body">
+                <div className="search-bar">
+                  <input
+                    type="text"
+                    placeholder="Search for a game name or creator"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <div className="search-icon">
+                    <FaSearch />
                   </div>
                 </div>
-              )}
-            </div>
-          )}
 
-          {/* Past Games Tab */}
-          {activeTab === "pastGames" && (
-            <div className="competitions-body">
-              <div className="my-games-list">
-                {myGamesPast.map((game) => (
-                  <div key={game.id} className="game-card ended">
-                    <div className="game-card-header">
-                      <div>
-                        <h3 className="game-card-title">
-                          {game.name} <span className="ended-badge">Ended</span>
-                        </h3>
-                        <p className="game-card-host">by {game.host}</p>
-                        <p className="mt-2">{game.details}</p>
-                      </div>
-                      <div className="game-card-actions">
-                        <button
-                          className="button-secondary"
-                          onClick={() => navigate(`/competitions/${game.id}`)}
-                        >
-                          Details
-                        </button>
-                      </div>
-                    </div>
-                    <div className="game-card-details">
-                      <div className="game-detail">
-                        <span className="game-detail-label">
-                          <FaCalendarAlt className="mr-1" /> Start Date
-                        </span>
-                        <span className="game-detail-value">
-                          {game.startDate}
-                        </span>
-                      </div>
-                      <div className="game-detail">
-                        <span className="game-detail-label">
-                          <FaCalendarAlt className="mr-1" /> End Date
-                        </span>
-                        <span className="game-detail-value">
-                          {game.endDate}
-                        </span>
-                      </div>
-                      <div className="game-detail">
-                        <span className="game-detail-label">
-                          <FaUsers className="mr-1" /> # of Players
-                        </span>
-                        <span className="game-detail-value">
-                          {game.players}
-                        </span>
-                      </div>
-                      <div className="game-detail">
-                        <span className="game-detail-label">
-                          <FaDollarSign className="mr-1" /> Starting Cash
-                        </span>
-                        <span className="game-detail-value">
-                          {game.startingCash}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {myGamesPast.length === 0 && (
+                <div className="overflow-x-auto">
+                  <table className="leaderboard-table">
+                    <thead>
+                      <tr>
+                        <th>Game Name</th>
+                        <th>Details</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th># of Players</th>
+                        <th>Starting Cash</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredGames.map((game) => (
+                        <tr key={game.id}>
+                          <td>
+                            <div className="flex items-center">
+                              {game.locked && <span className="mr-2">🔒</span>}
+                              <div>{game.name}</div>
+                            </div>
+                            <div className="game-card-host">by {game.host}</div>
+                          </td>
+                          <td>
+                            <button className="button-secondary">
+                              Details
+                            </button>
+                          </td>
+                          <td>{game.startDate}</td>
+                          <td>{game.endDate}</td>
+                          <td>{game.players}</td>
+                          <td>{game.startingCash}</td>
+                          <td className="text-right">
+                            {game.joined ? (
+                              <span className="joined">Joined</span>
+                            ) : game.locked ? (
+                              <button
+                                className="join-button"
+                                disabled
+                                title="This game is locked"
+                              >
+                                Join
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleJoinGame(game.id)}
+                                className="join-button"
+                              >
+                                Join
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {filteredGames.length === 0 && (
                   <div className="empty-state">
-                    <p>No past games yet.</p>
+                    <div className="empty-state-message">
+                      <h3>No Games Found</h3>
+                      <p>No games found matching your search criteria.</p>
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Create Game Tab */}
-          {activeTab === "createGame" && (
-            <div className="competitions-body">
-              <form onSubmit={handleCreateGame}>
-                <div className="form-grid">
-                  <div className="form-field">
-                    <label htmlFor="name" className="form-label">
-                      Game Name
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      required
-                      value={createGameForm.name}
-                      onChange={handleFormChange}
-                      className="form-input"
-                    />
+            {/* Past Games Tab */}
+            {activeTab === "pastGames" && (
+              <div className="competitions-body">
+                <div className="my-games-list">
+                  {myGamesPast.map((game) => (
+                    <div key={game.id} className="game-card ended">
+                      <div className="game-card-header">
+                        <div>
+                          <h3 className="game-card-title">
+                            {game.name}{" "}
+                            <span className="ended-badge">Ended</span>
+                          </h3>
+                          <p className="game-card-host">by {game.host}</p>
+                          <p className="mt-2">{game.details}</p>
+                        </div>
+                        <div className="game-card-actions">
+                          <button
+                            className="button-secondary"
+                            onClick={() => navigate(`/competitions/${game.id}`)}
+                          >
+                            Details
+                          </button>
+                        </div>
+                      </div>
+                      <div className="game-card-details">
+                        <div className="game-detail">
+                          <span className="game-detail-label">
+                            <FaCalendarAlt className="mr-1" /> Start Date
+                          </span>
+                          <span className="game-detail-value">
+                            {game.startDate}
+                          </span>
+                        </div>
+                        <div className="game-detail">
+                          <span className="game-detail-label">
+                            <FaCalendarAlt className="mr-1" /> End Date
+                          </span>
+                          <span className="game-detail-value">
+                            {game.endDate}
+                          </span>
+                        </div>
+                        <div className="game-detail">
+                          <span className="game-detail-label">
+                            <FaUsers className="mr-1" /> # of Players
+                          </span>
+                          <span className="game-detail-value">
+                            {game.players}
+                          </span>
+                        </div>
+                        <div className="game-detail">
+                          <span className="game-detail-label">
+                            <FaDollarSign className="mr-1" /> Starting Cash
+                          </span>
+                          <span className="game-detail-value">
+                            {game.startingCash}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {myGamesPast.length === 0 && (
+                    <div className="empty-state">
+                      <p>No past games yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Create Game Tab */}
+            {activeTab === "createGame" && (
+              <div className="competitions-body">
+                <form onSubmit={handleCreateGame}>
+                  <div className="form-grid">
+                    <div className="form-field">
+                      <label htmlFor="name" className="form-label">
+                        Game Name
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        required
+                        value={createGameForm.name}
+                        onChange={handleFormChange}
+                        className="form-input"
+                      />
+                    </div>
+
+                    <div className="form-field">
+                      <label htmlFor="visibility" className="form-label">
+                        Visibility
+                      </label>
+                      <select
+                        id="visibility"
+                        name="visibility"
+                        value={createGameForm.visibility}
+                        onChange={handleFormChange}
+                        className="form-select"
+                      >
+                        <option value="public">Public</option>
+                        <option value="private">Private</option>
+                      </select>
+                    </div>
+
+                    <div className="form-field full-width">
+                      <label htmlFor="description" className="form-label">
+                        Description
+                      </label>
+                      <textarea
+                        id="description"
+                        name="description"
+                        rows="3"
+                        value={createGameForm.description}
+                        onChange={handleFormChange}
+                        className="form-textarea"
+                      ></textarea>
+                    </div>
+
+                    <div className="form-field">
+                      <label htmlFor="startDate" className="form-label">
+                        Start Date
+                      </label>
+                      <input
+                        type="date"
+                        id="startDate"
+                        name="startDate"
+                        required
+                        value={createGameForm.startDate}
+                        onChange={handleFormChange}
+                        className="form-input"
+                      />
+                    </div>
+
+                    <div className="form-field">
+                      <label htmlFor="endDate" className="form-label">
+                        End Date (leave empty for no end date)
+                      </label>
+                      <input
+                        type="date"
+                        id="endDate"
+                        name="endDate"
+                        value={createGameForm.endDate}
+                        onChange={handleFormChange}
+                        className="form-input"
+                      />
+                    </div>
+
+                    <div className="form-field">
+                      <label htmlFor="initialCash" className="form-label">
+                        Initial Cash Amount ($)
+                      </label>
+                      <input
+                        type="number"
+                        id="initialCash"
+                        name="initialCash"
+                        required
+                        min="1000"
+                        value={createGameForm.initialCash}
+                        onChange={handleFormChange}
+                        className="form-input"
+                      />
+                    </div>
                   </div>
 
-                  <div className="form-field">
-                    <label htmlFor="visibility" className="form-label">
-                      Visibility
-                    </label>
-                    <select
-                      id="visibility"
-                      name="visibility"
-                      value={createGameForm.visibility}
-                      onChange={handleFormChange}
-                      className="form-select"
+                  <div className="form-actions">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("myGames")}
+                      className="button-secondary"
                     >
-                      <option value="public">Public</option>
-                      <option value="private">Private</option>
-                    </select>
+                      Cancel
+                    </button>
+                    <button type="submit" className="button-primary">
+                      Create Competition
+                    </button>
                   </div>
-
-                  <div className="form-field full-width">
-                    <label htmlFor="description" className="form-label">
-                      Description
-                    </label>
-                    <textarea
-                      id="description"
-                      name="description"
-                      rows="3"
-                      value={createGameForm.description}
-                      onChange={handleFormChange}
-                      className="form-textarea"
-                    ></textarea>
-                  </div>
-
-                  <div className="form-field">
-                    <label htmlFor="startDate" className="form-label">
-                      Start Date
-                    </label>
-                    <input
-                      type="date"
-                      id="startDate"
-                      name="startDate"
-                      required
-                      value={createGameForm.startDate}
-                      onChange={handleFormChange}
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div className="form-field">
-                    <label htmlFor="endDate" className="form-label">
-                      End Date (leave empty for no end date)
-                    </label>
-                    <input
-                      type="date"
-                      id="endDate"
-                      name="endDate"
-                      value={createGameForm.endDate}
-                      onChange={handleFormChange}
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div className="form-field">
-                    <label htmlFor="initialCash" className="form-label">
-                      Initial Cash Amount ($)
-                    </label>
-                    <input
-                      type="number"
-                      id="initialCash"
-                      name="initialCash"
-                      required
-                      min="1000"
-                      value={createGameForm.initialCash}
-                      onChange={handleFormChange}
-                      className="form-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-actions">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("myGames")}
-                    className="button-secondary"
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="button-primary">
-                    Create Competition
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-        </div>
+                </form>
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>

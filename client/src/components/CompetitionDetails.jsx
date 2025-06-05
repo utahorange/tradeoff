@@ -408,23 +408,39 @@ const CompetitionDetails = ({ setLoggedInUser }) => {
           ) : portfolioError ? (
             <div className="error-message">{portfolioError}</div>
           ) : portfolio ? (
-            <>
-              <div>
-                Cash Balance: ${portfolio.cashBalance?.toLocaleString()}
+            <div className="competition-portfolio-card">
+              <div className="portfolio-balance-row">
+                <span className="portfolio-balance-label">Cash Balance:</span>
+                <span className="portfolio-balance-value">
+                  ${portfolio.cashBalance?.toLocaleString()}
+                </span>
               </div>
-              <div>Stocks:</div>
-              <ul>
+              <div className="portfolio-stocks-row">
+                <span className="portfolio-stocks-label">Stocks:</span>
                 {portfolio.stocks.length === 0 ? (
-                  <li>No stocks yet.</li>
+                  <span className="portfolio-no-stocks">No stocks yet.</span>
                 ) : (
-                  portfolio.stocks.map((s) => (
-                    <li key={s.symbol}>
-                      {s.symbol}: {s.quantity} shares @ ${s.purchasePrice}
-                    </li>
-                  ))
+                  <table className="portfolio-stocks-table">
+                    <thead>
+                      <tr>
+                        <th>Symbol</th>
+                        <th>Quantity</th>
+                        <th>Purchase Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {portfolio.stocks.map((s) => (
+                        <tr key={s.symbol}>
+                          <td>{s.symbol}</td>
+                          <td>{s.quantity}</td>
+                          <td>${s.purchasePrice}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 )}
-              </ul>
-            </>
+              </div>
+            </div>
           ) : (
             <div>No portfolio found for this competition.</div>
           )}

@@ -7,50 +7,51 @@ import Navbar from "./Navbar";
 import "./Home.css";
 import { FaUserCircle } from "react-icons/fa";
 import { CgLogOut } from "react-icons/cg";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-const Home = ({setLoggedInUser}) => {
+const Home = ({ setLoggedInUser }) => {
   const navigate = useNavigate();
   const [holdings, setHoldings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [balance, setBalance] = useState(0);
   const [friendRequests, setFriendRequests] = useState([]);
   const [friends, setFriends] = useState([]);
   const [portfolioHistory, setPortfolioHistory] = useState([]);
-  
+
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
     setLoggedInUser(null);
   };
 
   useEffect(() => {
-      const fetchData = async () => {
-          try {
-              const token = localStorage.getItem('token');
-              const [holdingsRes, balanceRes, friendRequestsRes, friendsRes, portfolioHistoryRes] = await Promise.all([
-                  axios.get('http://localhost:8080/api/holdings', {
-                      headers: { Authorization: `Bearer ${token}` }
-                  }),
-                  axios.get('http://localhost:8080/api/balance', {
-                      headers: { Authorization: `Bearer ${token}` }
-                  }),
-                  axios.get('http://localhost:8080/api/friends/requests', {
-                      headers: { Authorization: `Bearer ${token}` }
-                  }),
-                  axios.get('http://localhost:8080/api/friends', {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const [holdingsRes, balanceRes, friendRequestsRes, friendsRes, portfolioHistoryRes] =
+          await Promise.all([
+            axios.get("http://localhost:8080/api/holdings", {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            axios.get("http://localhost:8080/api/balance", {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            axios.get("http://localhost:8080/api/friends/requests", {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            axios.get("http://localhost:8080/api/friends", {
                       headers: { Authorization: `Bearer ${token}` }
                   }),
                   axios.get('http://localhost:8080/api/portfolio/history?timeframe=ALL', {
-                      headers: { Authorization: `Bearer ${token}` }
-                  })
-              ]);
-              
-              setHoldings(holdingsRes.data.holdings);
-              setBalance(balanceRes.data.balance);
-              setFriendRequests(friendRequestsRes.data.requests || []);
-              setFriends(friendsRes.data.friends || []);
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+          ]);
+
+        setHoldings(holdingsRes.data.holdings);
+        setBalance(balanceRes.data.balance);
+        setFriendRequests(friendRequestsRes.data.requests || []);
+        setFriends(friendsRes.data.friends || []);
               
               // Format portfolio history for PortfolioGraph
               const currentUsername = localStorage.getItem('username');
@@ -67,83 +68,87 @@ const Home = ({setLoggedInUser}) => {
               } else {
                 setPortfolioHistory([]);
               }
-          } catch (err) {
-              console.error('Error fetching data:', err);
-              setError('Failed to fetch data');
-          } finally {
-              setLoading(false);
-          }
-      };
-      fetchData();
-    }, []);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to fetch data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-    return (
-      <div className="dashboard-root">
-        <Navbar />
-        <main className="dashboard-main">
-          {/* Top Bar */}
-          <header className="dashboard-topbar">
-            <div className="search-container">
-              <StockSearch />
-            </div>
-            <div className="dashboard-topbar-icons">
-              <CgLogOut 
-                className="logout-icon" 
-                onClick={handleLogout}
-              />
-              <div className="user-profile-container"
+  return (
+    <div className="dashboard-root">
+      <Navbar />
+      <main className="dashboard-main">
+        {/* Top Bar */}
+        <header className="dashboard-topbar">
+          <div className="search-container">
+            <StockSearch />
+          </div>
+          <div className="dashboard-topbar-icons">
+            <CgLogOut className="logout-icon" onClick={handleLogout} />
+            <div
+              className="user-profile-container"
               onClick={() => {
-                navigate('/profile');
-              }}>
-                <FaUserCircle className="profile-icon"/>
-                <h2 className="username">{localStorage.getItem('username')}</h2>
+                navigate("/profile");
+              }}
+            >
+              <FaUserCircle className="profile-icon" />
+              <h2 className="username">{localStorage.getItem("username")}</h2>
+            </div>
+          </div>
+        </header>
+        <div className="dashboard-summary">
+          <div className="balance-section">
+            <h2>My Stock Holdings</h2>
+          </div>
+          <div className="holdings-section">
+            <h2>Balance: ${balance.toFixed(2)}</h2>
+          </div>
+        </div>
+        {/* Holdings Cards Scroll */}
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p style={{ color: "red" }}>{error}</p>
+        ) : holdings.length === 0 ? (
+          <div className="dashboard-holdings-scroll">
+            <div className="dashboard-holding-card">
+              <div className="holding-symbol">No Stocks Yet</div>
+              <div className="holding-quantity">
+                Start investing by buying your first stock!
               </div>
             </div>
-          </header>
-          <div className="dashboard-summary">
-            <div className="balance-section">
-              <h2>My Stock Holdings</h2>
-            </div>
-            <div className="holdings-section">
-              <h2>Balance: ${balance.toFixed(2)}</h2>
-            </div>
           </div>
-          {/* Holdings Cards Scroll */}
-          {loading ? (
-            <p>Loading...</p>
-          ) : error ? (
-            <p style={{ color: 'red' }}>{error}</p>
-          ) : holdings.length === 0 ? (
-            <div className="dashboard-holdings-scroll">
-                <div className="dashboard-holding-card">
-                  <div className="holding-symbol">No Stocks Yet</div>
-                  <div className="holding-quantity">Start investing by buying your first stock!</div>
-                </div>
-            </div>
-          ) : (
-            <div className="dashboard-holdings-scroll">
-              {Object.entries(holdings.reduce((acc, h) => {
-                acc[h.stockSymbol] = (acc[h.stockSymbol] || 0) + h.stockQuantity;
+        ) : (
+          <div className="dashboard-holdings-scroll">
+            {Object.entries(
+              holdings.reduce((acc, h) => {
+                acc[h.stockSymbol] =
+                  (acc[h.stockSymbol] || 0) + h.stockQuantity;
                 return acc;
-              }, {})).map(([symbol, quantity]) => (
-                <div 
-                  className="dashboard-holding-card" 
-                  key={symbol}
-                  onClick={() => navigate(`/stock/${symbol}`)}
-                >
-                  <div className="holding-symbol">{symbol}</div>
-                  <div className="holding-quantity">Qty: {quantity}</div>
-                </div>
-              ))}
-            </div>
-          )}
-          {/* Portfolio Value Over Time Graph - Centered and Large */}
-          <div className="dashboard-portfolio-graph-center">
-            <PortfolioGraph usersData={portfolioHistory} />
+              }, {})
+            ).map(([symbol, quantity]) => (
+              <div
+                className="dashboard-holding-card"
+                key={symbol}
+                onClick={() => navigate(`/stock/${symbol}`)}
+              >
+                <div className="holding-symbol">{symbol}</div>
+                <div className="holding-quantity">Qty: {quantity}</div>
+              </div>
+            ))}
           </div>
-        </main>
-        {/* Right Sidebar */}
-        <aside className="dashboard-rightbar">
+        )}
+        {/* Portfolio Value Over Time Graph - Centered and Large */}
+        <div className="dashboard-portfolio-graph-center">
+          <PortfolioGraph hasHoldings={holdings.length > 0} />
+        </div>
+      </main>
+      {/* Right Sidebar */}
+      <aside className="dashboard-rightbar">
         <div className="rightbar-section">
           <h4>Friend Requests</h4>
           <ul>
@@ -165,11 +170,11 @@ const Home = ({setLoggedInUser}) => {
               <li className="text-muted">No friends added yet</li>
             ) : (
               friends.map((friend) => (
-                <li 
+                <li
                   key={friend._id}
                   className="friend-link"
                   onClick={() => navigate(`/stats/${friend.username}`)}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: "pointer" }}
                 >
                   {friend.username}
                 </li>
@@ -178,8 +183,8 @@ const Home = ({setLoggedInUser}) => {
           </ul>
         </div>
       </aside>
-      </div>
-    );
+    </div>
+  );
 };
 
 export default Home;
