@@ -29,18 +29,23 @@ const StockStats = ({ setLoggedInUser }) => {
             
             try {
                 const token = localStorage.getItem('token');
-                const endpoint = username 
-                    ? `http://localhost:8080/api/portfolio/${username}/current-value`
-                    : 'http://localhost:8080/api/portfolio/current-value';
+                const currentUsername = localStorage.getItem('username');
+                
+                // If no username in URL or if username matches current user, use current-value endpoint
+                const endpoint = (!username || username === currentUsername)
+                    ? 'http://localhost:8080/api/portfolio/current-value'
+                    : `http://localhost:8080/api/portfolio/${username}/current-value`;
                 
                 const response = await axios.get(endpoint, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 });
-                setPortfolioData(response.data);
-                setViewingUser(username || localStorage.getItem('username'));
-                setLoading(false);
+                
+                if (isMounted) {
+                    setPortfolioData(response.data);
+                    setViewingUser(username || currentUsername);
+                    setLoading(false);
                 }
             } catch (err) {
                 if (isMounted) {
@@ -51,19 +56,19 @@ const StockStats = ({ setLoggedInUser }) => {
         };
 
         fetchPortfolioData();
+        
         // Refresh data every 5 minutes if viewing own portfolio
         let interval;
-        if (!username) {
+        if (!username || username === localStorage.getItem('username')) {
             interval = setInterval(fetchPortfolioData, 300000);
         }
-        return () => interval && clearInterval(interval);
-    }, [username]);
-        // Refresh data every 5 minutes if viewing own portfolio
-        let interval;
-        if (!username) {
-            interval = setInterval(fetchPortfolioData, 300000);
-        }
-        return () => interval && clearInterval(interval);
+        
+        return () => {
+            isMounted = false;
+            if (interval) {
+                clearInterval(interval);
+            }
+        };
     }, [username]);
 
     const displayData = portfolioData || {
