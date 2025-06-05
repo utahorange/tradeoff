@@ -46,6 +46,8 @@ const App = () => {
                             <Route path="/stats/:username" element={<StockStats setLoggedInUser={setLoggedInUser}/>} />
                             <Route path="/stock/:symbol" element={<StockDetail />} />
                             <Route path="/friends" element={<Friends />} />
+                            <Route path="/stats" element={<StockStats />} />
+                            <Route path="/stats/:username" element={<StockStats setLoggedInUser={setLoggedInUser} />} />
                             <Route path="/competitions" element={<Competitions />} />
                             <Route path="/*" element={<Navigate to="/" />} />
                         </Routes>

@@ -29,9 +29,12 @@ const StockStats = ({ setLoggedInUser }) => {
             
             try {
                 const token = localStorage.getItem('token');
-                const endpoint = username 
-                    ? `http://localhost:8080/api/portfolio/${username}/current-value`
-                    : 'http://localhost:8080/api/portfolio/current-value';
+                const currentUsername = localStorage.getItem('username');
+                
+                // If no username in URL or if username matches current user, use current-value endpoint
+                const endpoint = (!username || username === currentUsername)
+                    ? 'http://localhost:8080/api/portfolio/current-value'
+                    : `http://localhost:8080/api/portfolio/${username}/current-value`;
                 
                 const response = await axios.get(endpoint, {
                     headers: {
@@ -41,7 +44,7 @@ const StockStats = ({ setLoggedInUser }) => {
                 
                 if (isMounted) {
                     setPortfolioData(response.data);
-                    setViewingUser(username || localStorage.getItem('username'));
+                    setViewingUser(username || currentUsername);
                     setLoading(false);
                 }
             } catch (err) {
@@ -53,15 +56,18 @@ const StockStats = ({ setLoggedInUser }) => {
         };
 
         fetchPortfolioData();
-        // Only set up interval for auto-refresh if viewing own portfolio
+        
+        // Refresh data every 5 minutes if viewing own portfolio
         let interval;
-        if (!username) {
+        if (!username || username === localStorage.getItem('username')) {
             interval = setInterval(fetchPortfolioData, 300000);
         }
         
         return () => {
             isMounted = false;
-            if (interval) clearInterval(interval);
+            if (interval) {
+                clearInterval(interval);
+            }
         };
     }, [username]);
 
@@ -106,11 +112,7 @@ const StockStats = ({ setLoggedInUser }) => {
                     </div>
                 </header>
                 <div className="portfolio-summary">
-                    <h2>
-                        {viewingUser === localStorage.getItem('username') 
-                            ? 'My Portfolio Summary' 
-                            : `${viewingUser}'s Portfolio Summary`}
-                    </h2>
+                    <h2>{viewingUser === localStorage.getItem('username') ? 'My Portfolio Summary' : `${viewingUser}'s Portfolio Summary`}</h2>
                     <div className="summary-cards">
                         <div className="summary-card">
                             <h3>Total Value</h3>

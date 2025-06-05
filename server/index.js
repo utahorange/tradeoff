@@ -992,43 +992,38 @@ app.get("/api/portfolio/current", auth, async (req, res) => {
 });
 
 // Get portfolio value (for current user or specific username)
-app.get("/api/portfolio/:usernameOrCurrentValue/current-value", auth, async (req, res) => {
+app.get(["/api/portfolio/current-value", "/api/portfolio/:username/current-value"], auth, async (req, res) => {
   try {
-    console.log(`Portfolio request for: ${req.params.usernameOrCurrentValue}`);
+    console.log('Portfolio request received:', req.params);
     
     // Determine which user's portfolio to fetch
-    let targetUser;
-    if (req.params.usernameOrCurrentValue !== 'current-value') {
+    let targetUser = req.user; // Default to current user
+
+    if (req.params.username) {
       // Looking up another user
-      console.log('Looking up user:', req.params.usernameOrCurrentValue);
-      targetUser = await User.findOne({ username: req.params.usernameOrCurrentValue });
+      console.log('Looking up user:', req.params.username);
+      targetUser = await User.findOne({ username: req.params.username });
       
       if (!targetUser) {
-        console.log('User not found:', req.params.usernameOrCurrentValue);
+        console.log('User not found:', req.params.username);
         return res.status(404).json({ message: "User not found" });
       }
 
-      console.log('Checking friendship status');
-      // Check if they are friends
-      const areFriends = await FriendRequest.findOne({
-        $or: [
-          { sender: req.user._id, receiver: targetUser._id, status: 'accepted' },
-          { sender: targetUser._id, receiver: req.user._id, status: 'accepted' }
-        ]
-      });
+      if (targetUser._id.toString() !== req.user._id.toString()) {
+        console.log('Checking friendship status');
+        // Check if they are friends
+        const areFriends = await FriendRequest.findOne({
+          $or: [
+            { sender: req.user._id, receiver: targetUser._id, status: 'accepted' },
+            { sender: targetUser._id, receiver: req.user._id, status: 'accepted' }
+          ]
+        });
 
-      if (!areFriends) {
-        console.log('Users are not friends');
-        return res.status(403).json({ message: "You must be friends to view their portfolio" });
-      }
-      console.log('Users are friends, proceeding to fetch portfolio');
-    } else {
-      // Current user's portfolio
-      console.log('Fetching current user portfolio');
-      targetUser = req.user;
-      if (!targetUser) {
-        console.log('Current user not found in request');
-        return res.status(401).json({ message: "User not authenticated" });
+        if (!areFriends) {
+          console.log('Users are not friends');
+          return res.status(403).json({ message: "You must be friends to view their portfolio" });
+        }
+        console.log('Users are friends, proceeding to fetch portfolio');
       }
     }
 
@@ -1086,7 +1081,6 @@ app.get("/api/portfolio/:usernameOrCurrentValue/current-value", auth, async (req
     });
   } catch (error) {
     console.error('Get portfolio value error:', error);
-    // Send more detailed error information
     res.status(500).json({ 
       message: 'Error fetching portfolio value',
       error: error.message,
