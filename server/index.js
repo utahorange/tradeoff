@@ -1149,22 +1149,31 @@ app.get("/api/portfolio/current", auth, async (req, res) => {
 });
 
 // Get current portfolio value with real-time prices
-app.get("/api/portfolio/current-value", auth, async (req, res) => {
+app.get(["/api/portfolio/current-value", "/api/portfolio/:username/current-value"], auth, async (req, res) => {
   console.log("Getting current portfolio value");
   try {
-    logDatabaseQuery("READ", "User", `Finding user by ID: ${req.user._id}`);
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    let targetUser;
+    
+    // If username is provided, find that user, otherwise use the authenticated user
+    if (req.params.username) {
+      targetUser = await User.findOne({ username: req.params.username });
+      if (!targetUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+    } else {
+      targetUser = await User.findById(req.user._id);
+      if (!targetUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
     }
 
     // Get current prices for all holdings
     logDatabaseQuery(
       "READ",
       "Holding",
-      `Getting all holdings for user ${req.user._id}`
+      `Getting all holdings for user ${targetUser._id}`
     );
-    const holdings = await Holding.find({ user: req.user._id });
+    const holdings = await Holding.find({ user: targetUser._id });
     const holdingsWithCurrentPrice = [];
     let totalValue = 0;
 
@@ -1195,9 +1204,9 @@ app.get("/api/portfolio/current-value", auth, async (req, res) => {
     }
 
     res.json({
-      totalValue: totalValue + user.balance,
+      totalValue: totalValue + targetUser.balance,
       holdings: holdingsWithCurrentPrice,
-      cashBalance: user.balance,
+      cashBalance: targetUser.balance,
     });
   } catch (error) {
     console.error("Get current portfolio value error:", error);
