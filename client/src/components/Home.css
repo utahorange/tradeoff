@@ -425,4 +425,16 @@
 
   .friend-item:hover {
     background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .friend-link {
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
+    cursor: pointer;
+  }
+
+  .friend-link:hover {
+    background-color: #353945;
+    color: #fff !important;
   } 

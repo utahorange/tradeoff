@@ -3,16 +3,17 @@ import axios from 'axios';
 import './StockStats.css';
 import { CgLogOut } from "react-icons/cg";
 import { FaUserCircle } from "react-icons/fa";
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useParams } from 'react-router-dom';
 import StockSearch from './StockSearch';
 import Navbar from './Navbar';
 
 const StockStats = ({ setLoggedInUser }) => {
     const navigate = useNavigate();
-    const { username } = useParams(); // Get username from URL params
+    const { username } = useParams();
     const [portfolioData, setPortfolioData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [viewingUser, setViewingUser] = useState(null);
     const [viewingUser, setViewingUser] = useState(null);
 
     const handleLogout = () => {
@@ -34,18 +35,25 @@ const StockStats = ({ setLoggedInUser }) => {
                     : 'http://localhost:8080/api/portfolio/current-value';
                 
                 const response = await axios.get(endpoint, {
+                const endpoint = username 
+                    ? `http://localhost:8080/api/portfolio/${username}/current-value`
+                    : 'http://localhost:8080/api/portfolio/current-value';
+                
+                const response = await axios.get(endpoint, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 });
+                
                 if (isMounted) {
                     setPortfolioData(response.data);
+                    setViewingUser(username || localStorage.getItem('username'));
                     setViewingUser(username || localStorage.getItem('username'));
                 setLoading(false);
                 }
             } catch (err) {
                 if (isMounted) {
-                    setError('Failed to fetch portfolio data');
+                    setError(err.response?.data?.message || 'Failed to fetch portfolio data');
                     setLoading(false);
                 }
             }
@@ -101,7 +109,11 @@ const StockStats = ({ setLoggedInUser }) => {
                     </div>
                 </header>
                 <div className="portfolio-summary">
-                    <h2>{viewingUser === localStorage.getItem('username') ? 'My Portfolio Summary' : `${viewingUser}'s Portfolio Summary`}</h2>
+                    <h2>{viewingUser === localStorage.getItem('username') ? 'My Portfolio Summary' : `${viewingUser}'s 
+                        {viewingUser === localStorage.getItem('username') 
+                            ? 'My Portfolio Summary' 
+                            : `${viewingUser}'s Portfolio Summary`}`}
+                    </h2>
                     <div className="summary-cards">
                         <div className="summary-card">
                             <h3>Total Value</h3>

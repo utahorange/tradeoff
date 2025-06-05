@@ -147,8 +147,9 @@ const Home = ({setLoggedInUser}) => {
               friends.map((friend) => (
                 <li 
                   key={friend._id}
-                  className="friend-item"
+                  className="friend-link"
                   onClick={() => navigate(`/stats/${friend.username}`)}
+                  style={{ cursor: 'pointer' }}
                 >
                   {friend.username}
                 </li>

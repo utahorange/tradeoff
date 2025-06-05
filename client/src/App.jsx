@@ -43,6 +43,7 @@ const App = () => {
                             <Route path="/" element={<Home setLoggedInUser={setLoggedInUser} />} />
                             <Route path="/profile" element={<UserProfile setLoggedInUser={setLoggedInUser} />} />
                             <Route path="/stats" element={<StockStats setLoggedInUser={setLoggedInUser}/>} />
+                            <Route path="/stats/:username" element={<StockStats setLoggedInUser={setLoggedInUser}/>} />
                             <Route path="/stock/:symbol" element={<StockDetail />} />
                             <Route path="/friends" element={<Friends />} />
                             <Route path="/stats" element={<StockStats />} />
