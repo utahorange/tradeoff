@@ -3,7 +3,7 @@ import axios from 'axios';
 import './StockStats.css';
 import { CgLogOut } from "react-icons/cg";
 import { FaUserCircle } from "react-icons/fa";
-import { useNavigate, useParams, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import StockSearch from './StockSearch';
 import Navbar from './Navbar';
 
@@ -13,7 +13,6 @@ const StockStats = ({ setLoggedInUser }) => {
     const [portfolioData, setPortfolioData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [viewingUser, setViewingUser] = useState(null);
     const [viewingUser, setViewingUser] = useState(null);
 
     const handleLogout = () => {
@@ -35,20 +34,12 @@ const StockStats = ({ setLoggedInUser }) => {
                     : 'http://localhost:8080/api/portfolio/current-value';
                 
                 const response = await axios.get(endpoint, {
-                const endpoint = username 
-                    ? `http://localhost:8080/api/portfolio/${username}/current-value`
-                    : 'http://localhost:8080/api/portfolio/current-value';
-                
-                const response = await axios.get(endpoint, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 });
-                
-                if (isMounted) {
-                    setPortfolioData(response.data);
-                    setViewingUser(username || localStorage.getItem('username'));
-                    setViewingUser(username || localStorage.getItem('username'));
+                setPortfolioData(response.data);
+                setViewingUser(username || localStorage.getItem('username'));
                 setLoading(false);
                 }
             } catch (err) {
@@ -60,6 +51,13 @@ const StockStats = ({ setLoggedInUser }) => {
         };
 
         fetchPortfolioData();
+        // Refresh data every 5 minutes if viewing own portfolio
+        let interval;
+        if (!username) {
+            interval = setInterval(fetchPortfolioData, 300000);
+        }
+        return () => interval && clearInterval(interval);
+    }, [username]);
         // Refresh data every 5 minutes if viewing own portfolio
         let interval;
         if (!username) {
@@ -109,11 +107,7 @@ const StockStats = ({ setLoggedInUser }) => {
                     </div>
                 </header>
                 <div className="portfolio-summary">
-                    <h2>{viewingUser === localStorage.getItem('username') ? 'My Portfolio Summary' : `${viewingUser}'s 
-                        {viewingUser === localStorage.getItem('username') 
-                            ? 'My Portfolio Summary' 
-                            : `${viewingUser}'s Portfolio Summary`}`}
-                    </h2>
+                    <h2>{viewingUser === localStorage.getItem('username') ? 'My Portfolio Summary' : `${viewingUser}'s Portfolio Summary`}</h2>
                     <div className="summary-cards">
                         <div className="summary-card">
                             <h3>Total Value</h3>
