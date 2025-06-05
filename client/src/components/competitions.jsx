@@ -521,7 +521,7 @@ const Competitions = ({ setLoggedInUser }) => {
   return (
     <div className="dashboard-root">
       <Navbar />
-      <main className="dashboard-main">
+      <main className="dashboard-main" style={{ overflow: 'auto' }}>
         {/* Top Bar */}
         <header className="dashboard-topbar">
           <div className="search-container">
@@ -556,8 +556,8 @@ const Competitions = ({ setLoggedInUser }) => {
           </div>
         )}
 
-        <div className="competitions-content" style={{ marginLeft: 0 }}>
-          <div className="competitions-card">
+        <div className="competitions-content" style={{ marginLeft: 0, height: 'auto', flex: 'none' }}>
+                      <div className="competitions-card" style={{ overflow: 'visible', height: 'auto' }}>
             {/* Header with navigation tabs and back button */}
             <div className="competitions-header">
               <button

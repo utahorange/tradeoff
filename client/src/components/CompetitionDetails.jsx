@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { FaUserCircle } from "react-icons/fa";
+import { CgLogOut } from "react-icons/cg";
 import axios from "axios";
 import PortfolioGraph from "./PortfolioGraph";
 import Navbar from "./Navbar";
+import StockSearch from "./StockSearch";
 import "./CompetitionDetails.css";
+import "./Home.css"; // Import Home.css for dashboard styles
 
 const palette = [
   "#4299e1",
@@ -18,9 +22,15 @@ const palette = [
   "#fc8181",
 ];
 
-const CompetitionDetails = () => {
+const CompetitionDetails = ({ setLoggedInUser }) => {
   const { competitionId } = useParams();
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    setLoggedInUser(null);
+  };
   const [competitionData, setCompetitionData] = useState(null);
   const [usersData, setUsersData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -269,34 +279,93 @@ const CompetitionDetails = () => {
 
   if (loading) {
     return (
-      <div className="competition-details-container">
+      <div className="dashboard-root">
         <Navbar />
-        <div className="loading-overlay">
-          <div className="loading-spinner"></div>
-          <p>Loading competition data...</p>
-        </div>
+        <main className="dashboard-main">
+          <header className="dashboard-topbar">
+            <div className="search-container">
+              <StockSearch />
+            </div>
+            <div className="dashboard-topbar-icons">
+              <CgLogOut 
+                className="logout-icon" 
+                onClick={handleLogout}
+              />
+              <div className="user-profile-container"
+              onClick={() => {
+                navigate('/profile');
+              }}>
+                <FaUserCircle className="profile-icon"/>
+                <h2 className="username">{localStorage.getItem('username')}</h2>
+              </div>
+            </div>
+          </header>
+          <div className="loading-overlay">
+            <div className="loading-spinner"></div>
+            <p>Loading competition data...</p>
+          </div>
+        </main>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="competition-details-container">
+      <div className="dashboard-root">
         <Navbar />
-        <div className="error-message">
-          <p>{error}</p>
-          <button onClick={() => navigate("/competitions")}>
-            Back to Competitions
-          </button>
-        </div>
+        <main className="dashboard-main">
+          <header className="dashboard-topbar">
+            <div className="search-container">
+              <StockSearch />
+            </div>
+            <div className="dashboard-topbar-icons">
+              <CgLogOut 
+                className="logout-icon" 
+                onClick={handleLogout}
+              />
+              <div className="user-profile-container"
+              onClick={() => {
+                navigate('/profile');
+              }}>
+                <FaUserCircle className="profile-icon"/>
+                <h2 className="username">{localStorage.getItem('username')}</h2>
+              </div>
+            </div>
+          </header>
+          <div className="error-message">
+            <p>{error}</p>
+            <button onClick={() => navigate("/competitions")}>
+              Back to Competitions
+            </button>
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="competition-details-container">
+    <div className="dashboard-root">
       <Navbar />
-      <div className="competition-details-content">
+      <main className="dashboard-main">
+        <header className="dashboard-topbar">
+          <div className="search-container">
+            <StockSearch />
+          </div>
+          <div className="dashboard-topbar-icons">
+            <CgLogOut 
+              className="logout-icon" 
+              onClick={handleLogout}
+            />
+            <div className="user-profile-container"
+            onClick={() => {
+              navigate('/profile');
+            }}>
+              <FaUserCircle className="profile-icon"/>
+              <h2 className="username">{localStorage.getItem('username')}</h2>
+            </div>
+          </div>
+        </header>
+        <div className="competition-details-content" style={{ marginLeft: 0 }}>
         <div className="competition-header">
           <button
             onClick={() => navigate("/competitions")}
@@ -431,7 +500,8 @@ const CompetitionDetails = () => {
             </table>
           </div>
         </div>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };

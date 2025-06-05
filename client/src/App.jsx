@@ -69,7 +69,7 @@ const App = () => {
               />
               <Route
                 path="/competitions/:competitionId"
-                element={<CompetitionDetails />}
+                element={<CompetitionDetails setLoggedInUser={setLoggedInUser} />}
               />
               <Route path="/*" element={<Navigate to="/" />} />
             </Routes>
