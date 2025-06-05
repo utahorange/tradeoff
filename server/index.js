@@ -709,11 +709,11 @@ app.get(
       // Get snapshots for each participant
       const snapshotsData = await Promise.all(
         participants.map(async (participant) => {
-          // Get portfolio snapshots for this participant
+          // Get portfolio snapshots for this participant in this competition
           const snapshots = await PortfolioSnapshot.find({
             competitionId,
             type: "competition",
-            "holdings.userId": participant.userId._id,
+            user: participant.userId._id,
           })
             .sort({ timestamp: 1 })
             .select("timestamp totalValue");
@@ -1288,6 +1288,222 @@ app.get("/api/stocks/:symbol", auth, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch stock details" });
   }
 });
+
+// Join a competition
+app.post("/api/competitions/:competitionId/join", auth, async (req, res) => {
+  try {
+    const { competitionId } = req.params;
+    const userId = req.user._id;
+
+    // Check if already a participant
+    const existing = await CompetitionParticipant.findOne({
+      userId,
+      competitionId,
+    });
+    if (existing) {
+      return res
+        .status(400)
+        .json({ message: "Already joined this competition" });
+    }
+
+    // Find the competition
+    const competition = await Competition.findById(competitionId);
+    if (!competition) {
+      return res.status(404).json({ message: "Competition not found" });
+    }
+
+    // Add participant
+    const participant = new CompetitionParticipant({
+      userId,
+      competitionId,
+      accountValue: competition.startingCash,
+      todayChange: 0,
+      overallChange: 0,
+    });
+    await participant.save();
+
+    // Create a competition portfolio for this user
+    const portfolio = new CompetitionPortfolio({
+      userId,
+      competitionId,
+      cashBalance: competition.startingCash,
+      stocks: [],
+    });
+    await portfolio.save();
+
+    res.json({ message: "Successfully joined the competition" });
+  } catch (error) {
+    console.error("Error joining competition:", error);
+    res.status(500).json({ message: "Error joining competition" });
+  }
+});
+
+// Buy stocks in a competition
+app.post("/api/competitions/:competitionId/buy", auth, async (req, res) => {
+  try {
+    const { competitionId } = req.params;
+    const { symbol, quantity, price } = req.body;
+    const userId = req.user._id;
+
+    // Find the user's competition portfolio
+    const portfolio = await CompetitionPortfolio.findOne({
+      userId,
+      competitionId,
+    });
+    if (!portfolio) {
+      return res
+        .status(404)
+        .json({ message: "Competition portfolio not found" });
+    }
+
+    const totalCost = price * quantity;
+    if (portfolio.cashBalance < totalCost) {
+      return res
+        .status(400)
+        .json({ message: "Insufficient cash in competition portfolio" });
+    }
+
+    // Deduct cash
+    portfolio.cashBalance -= totalCost;
+
+    // Add or update stock holding
+    const stockIndex = portfolio.stocks.findIndex((s) => s.symbol === symbol);
+    if (stockIndex !== -1) {
+      // Update existing holding
+      portfolio.stocks[stockIndex].quantity += quantity;
+      // Optionally, update purchasePrice (e.g., weighted average)
+    } else {
+      // Add new holding
+      portfolio.stocks.push({
+        symbol,
+        quantity,
+        purchasePrice: price,
+        purchaseDate: new Date(),
+        currentValue: price,
+      });
+    }
+
+    await portfolio.save();
+
+    // Create a snapshot for performance tracking
+    await PortfolioSnapshot.create({
+      user: userId,
+      competitionId,
+      type: "competition",
+      timestamp: new Date(),
+      totalValue:
+        portfolio.cashBalance +
+        portfolio.stocks.reduce(
+          (sum, s) => sum + s.quantity * s.purchasePrice,
+          0
+        ),
+      holdings: portfolio.stocks.map((s) => ({
+        symbol: s.symbol,
+        quantity: s.quantity,
+        price: s.purchasePrice,
+        value: s.quantity * s.purchasePrice,
+      })),
+      cashBalance: portfolio.cashBalance,
+    });
+
+    res.json({ message: "Stock bought successfully", portfolio });
+  } catch (error) {
+    console.error("Error buying stock in competition:", error);
+    res.status(500).json({ message: "Error buying stock in competition" });
+  }
+});
+
+// Sell stocks in a competition
+app.post("/api/competitions/:competitionId/sell", auth, async (req, res) => {
+  try {
+    const { competitionId } = req.params;
+    const { symbol, quantity, price } = req.body;
+    const userId = req.user._id;
+
+    // Find the user's competition portfolio
+    const portfolio = await CompetitionPortfolio.findOne({
+      userId,
+      competitionId,
+    });
+    if (!portfolio) {
+      return res
+        .status(404)
+        .json({ message: "Competition portfolio not found" });
+    }
+
+    // Find the stock holding
+    const stockIndex = portfolio.stocks.findIndex((s) => s.symbol === symbol);
+    if (stockIndex === -1 || portfolio.stocks[stockIndex].quantity < quantity) {
+      return res.status(400).json({
+        message: "Insufficient stock quantity in competition portfolio",
+      });
+    }
+
+    // Subtract quantity
+    portfolio.stocks[stockIndex].quantity -= quantity;
+    // Add cash
+    const totalProceeds = price * quantity;
+    portfolio.cashBalance += totalProceeds;
+
+    // Remove holding if quantity is zero
+    if (portfolio.stocks[stockIndex].quantity === 0) {
+      portfolio.stocks.splice(stockIndex, 1);
+    }
+
+    await portfolio.save();
+
+    // Create a snapshot for performance tracking
+    await PortfolioSnapshot.create({
+      user: userId,
+      competitionId,
+      type: "competition",
+      timestamp: new Date(),
+      totalValue:
+        portfolio.cashBalance +
+        portfolio.stocks.reduce(
+          (sum, s) => sum + s.quantity * s.purchasePrice,
+          0
+        ),
+      holdings: portfolio.stocks.map((s) => ({
+        symbol: s.symbol,
+        quantity: s.quantity,
+        price: s.purchasePrice,
+        value: s.quantity * s.purchasePrice,
+      })),
+      cashBalance: portfolio.cashBalance,
+    });
+
+    res.json({ message: "Stock sold successfully", portfolio });
+  } catch (error) {
+    console.error("Error selling stock in competition:", error);
+    res.status(500).json({ message: "Error selling stock in competition" });
+  }
+});
+
+// Get user's competition portfolio for a competition
+app.get(
+  "/api/competitions/:competitionId/portfolio",
+  auth,
+  async (req, res) => {
+    try {
+      const { competitionId } = req.params;
+      const userId = req.user._id;
+      const portfolio = await CompetitionPortfolio.findOne({
+        userId,
+        competitionId,
+      });
+      if (!portfolio) {
+        return res
+          .status(404)
+          .json({ message: "Competition portfolio not found" });
+      }
+      res.json(portfolio);
+    } catch (error) {
+      console.error("Error fetching competition portfolio:", error);
+      res.status(500).json({ message: "Error fetching competition portfolio" });
+    }
+  }
+);
 
 // // app.use('/api/auth', authRoutes);
 

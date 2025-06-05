@@ -333,16 +333,9 @@ const Competitions = () => {
   const handleDeleteGame = async (gameId) => {
     console.log("[DELETE GAME] Starting delete process for gameId:", gameId);
     console.log("[DELETE GAME] Current user:", currentUsername);
-    console.log(
-      "[DELETE GAME] Game to delete:",
-      myGames.find((g) => g.id === gameId)
-    );
-
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this competition? This action cannot be undone and will remove the competition for all participants."
-      )
-    ) {
+    console.log("[DELETE GAME] Game to delete:", myGames.find(g => g.id === gameId));
+    
+    if (!window.confirm("Are you sure you want to delete this competition? This action cannot be undone and will remove the competition for all participants.")) {
       return;
     }
 
@@ -363,19 +356,13 @@ const Competitions = () => {
         },
       };
 
-      console.log(
-        "[DELETE GAME] Making DELETE request to:",
-        `/api/competitions/${gameId}`
-      );
-
+      console.log("[DELETE GAME] Making DELETE request to:", `/api/competitions/${gameId}`);
+      
       const response = await api.delete(`/api/competitions/${gameId}`, config);
       console.log("[DELETE GAME] Response:", response);
 
       // Refresh my games list
-      const myGamesResponse = await api.get(
-        "/api/competitions/my-games",
-        config
-      );
+      const myGamesResponse = await api.get("/api/competitions/my-games", config);
       setMyGames(myGamesResponse.data);
 
       alert("Successfully deleted the competition!");
@@ -386,7 +373,7 @@ const Competitions = () => {
         statusText: err.response?.statusText,
         data: err.response?.data,
         message: err.message,
-        gameId: gameId,
+        gameId: gameId
       });
       setError(
         err.response?.data?.message ||

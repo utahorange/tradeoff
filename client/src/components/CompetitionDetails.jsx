@@ -25,6 +25,16 @@ const CompetitionDetails = () => {
   const [usersData, setUsersData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [portfolio, setPortfolio] = useState(null);
+  const [portfolioLoading, setPortfolioLoading] = useState(true);
+  const [tradeError, setTradeError] = useState("");
+  const [tradeSuccess, setTradeSuccess] = useState("");
+  const [buySymbol, setBuySymbol] = useState("");
+  const [buyQuantity, setBuyQuantity] = useState(1);
+  const [buyPrice, setBuyPrice] = useState("");
+  const [sellSymbol, setSellSymbol] = useState("");
+  const [sellQuantity, setSellQuantity] = useState(1);
+  const [sellPrice, setSellPrice] = useState("");
 
   useEffect(() => {
     const fetchCompetitionData = async () => {
@@ -32,6 +42,12 @@ const CompetitionDetails = () => {
       setError("");
       try {
         const token = localStorage.getItem("token");
+        console.log("Token for snapshots fetch:", token);
+        if (!token) {
+          setError("Authentication required. Please log in again.");
+          setLoading(false);
+          return;
+        }
         // Fetch competition details
         const competitionRes = await axios.get(
           `/api/competitions/${competitionId}`,
@@ -68,8 +84,101 @@ const CompetitionDetails = () => {
       }
     };
 
+    const fetchPortfolio = async () => {
+      setPortfolioLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(
+          `/api/competitions/${competitionId}/portfolio`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setPortfolio(res.data);
+      } catch (err) {
+        setPortfolio(null);
+      } finally {
+        setPortfolioLoading(false);
+      }
+    };
+
     fetchCompetitionData();
+    fetchPortfolio();
   }, [competitionId]);
+
+  // Buy handler
+  const handleBuy = async (e) => {
+    e.preventDefault();
+    setTradeError("");
+    setTradeSuccess("");
+    try {
+      const token = localStorage.getItem("token");
+      // Fetch current price from backend
+      const priceRes = await axios.get(`/api/quote/${buySymbol}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const price = priceRes.data.currentPrice;
+      await axios.post(
+        `/api/competitions/${competitionId}/buy`,
+        {
+          symbol: buySymbol,
+          quantity: Number(buyQuantity),
+          price: Number(price),
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setTradeSuccess("Stock bought successfully!");
+      setBuySymbol("");
+      setBuyQuantity(1);
+      // Refresh portfolio
+      const res = await axios.get(
+        `/api/competitions/${competitionId}/portfolio`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setPortfolio(res.data);
+    } catch (err) {
+      setTradeError(err.response?.data?.message || "Failed to buy stock");
+    }
+  };
+
+  // Sell handler
+  const handleSell = async (e) => {
+    e.preventDefault();
+    setTradeError("");
+    setTradeSuccess("");
+    try {
+      const token = localStorage.getItem("token");
+      // Fetch current price from backend
+      const priceRes = await axios.get(`api/quote/${sellSymbol}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const price = priceRes.data.currentPrice;
+      await axios.post(
+        `/api/competitions/${competitionId}/sell`,
+        {
+          symbol: sellSymbol,
+          quantity: Number(sellQuantity),
+          price: Number(price),
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setTradeSuccess("Stock sold successfully!");
+      setSellSymbol("");
+      setSellQuantity(1);
+      // Refresh portfolio
+      const res = await axios.get(
+        `/api/competitions/${competitionId}/portfolio`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setPortfolio(res.data);
+    } catch (err) {
+      setTradeError(err.response?.data?.message || "Failed to sell stock");
+    }
+  };
 
   if (loading) {
     return (
@@ -131,6 +240,83 @@ const CompetitionDetails = () => {
               <span className="value">{usersData.length}</span>
             </div>
           </div>
+        </div>
+
+        <div className="competition-portfolio-section">
+          <h2>Your Competition Portfolio</h2>
+          {portfolioLoading ? (
+            <div>Loading portfolio...</div>
+          ) : portfolio ? (
+            <>
+              <div>
+                Cash Balance: ${portfolio.cashBalance?.toLocaleString()}
+              </div>
+              <div>Stocks:</div>
+              <ul>
+                {portfolio.stocks.length === 0 ? (
+                  <li>No stocks yet.</li>
+                ) : (
+                  portfolio.stocks.map((s) => (
+                    <li key={s.symbol}>
+                      {s.symbol}: {s.quantity} shares @ ${s.purchasePrice}
+                    </li>
+                  ))
+                )}
+              </ul>
+            </>
+          ) : (
+            <div>No portfolio found for this competition.</div>
+          )}
+        </div>
+
+        <div className="competition-trade-section">
+          <h2>Trade in this Competition</h2>
+          {tradeError && <div className="error-message">{tradeError}</div>}
+          {tradeSuccess && (
+            <div className="success-message">{tradeSuccess}</div>
+          )}
+          <form onSubmit={handleBuy} style={{ marginBottom: 16 }}>
+            <h3>Buy Stock</h3>
+            <input
+              type="text"
+              placeholder="Symbol (e.g. AAPL)"
+              value={buySymbol}
+              onChange={(e) => setBuySymbol(e.target.value.toUpperCase())}
+              required
+            />
+            <input
+              type="number"
+              min="1"
+              placeholder="Quantity"
+              value={buyQuantity}
+              onChange={(e) => setBuyQuantity(e.target.value)}
+              required
+            />
+            <button type="submit" className="button-secondary">
+              Buy
+            </button>
+          </form>
+          <form onSubmit={handleSell}>
+            <h3>Sell Stock</h3>
+            <input
+              type="text"
+              placeholder="Symbol (e.g. AAPL)"
+              value={sellSymbol}
+              onChange={(e) => setSellSymbol(e.target.value.toUpperCase())}
+              required
+            />
+            <input
+              type="number"
+              min="1"
+              placeholder="Quantity"
+              value={sellQuantity}
+              onChange={(e) => setSellQuantity(e.target.value)}
+              required
+            />
+            <button type="submit" className="button-secondary">
+              Sell
+            </button>
+          </form>
         </div>
 
         <div className="competition-graph-section">
