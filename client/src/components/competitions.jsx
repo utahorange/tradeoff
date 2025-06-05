@@ -116,12 +116,27 @@ const Competitions = () => {
           console.log("My games response:", response.data);
           setMyGames(Array.isArray(response.data) ? response.data : []);
         } else if (activeTab === "joinGame") {
-          const response = await axios.get(
-            "/api/competitions/available",
-            config
-          );
-          console.log("Available games response:", response.data);
-          setAvailableGames(Array.isArray(response.data) ? response.data : []);
+          try {
+            console.log("Fetching available games...");
+            const response = await axios.get(
+              "/api/competitions/available",
+              config
+            );
+            console.log("Available games response:", response.data);
+            console.log("Response status:", response.status);
+            console.log("Response headers:", response.headers);
+            setAvailableGames(Array.isArray(response.data) ? response.data : []);
+          } catch (err) {
+            console.error("Error fetching available games:", err);
+            console.error("Error details:", {
+              message: err.message,
+              response: err.response?.data,
+              status: err.response?.status,
+              headers: err.response?.headers
+            });
+            setError("Failed to fetch available games. Please try again.");
+            setAvailableGames([]);
+          }
         }
       } catch (err) {
         console.error("Error fetching data:", err);

@@ -352,7 +352,7 @@ app.get("/api/competitions/available", auth, async (req, res) => {
     // Find all public competitions
     const availableCompetitions = await Competition.find({
       visibility: "public",
-    });
+    }) || [];
 
     // Find competitions the user has already joined
     const joinedCompetitions = await CompetitionParticipant.find({
@@ -362,7 +362,7 @@ app.get("/api/competitions/available", auth, async (req, res) => {
 
     // Format the response to match the frontend expectations
     const availableGames = await Promise.all(
-      availableCompetitions.map(async (comp) => {
+      (availableCompetitions || []).map(async (comp) => {
         // Count the number of players in this competition
         const playerCount = await CompetitionParticipant.countDocuments({
           competitionId: comp._id,
