@@ -990,56 +990,108 @@ app.get("/api/portfolio/current", auth, async (req, res) => {
   }
 });
 
-// Get current portfolio value with real-time prices
-app.get("/api/portfolio/current-value", auth, async (req, res) => {
-  console.log("Getting current portfolio value");
+// Get portfolio value (for current user or specific username)
+app.get("/api/portfolio/:usernameOrCurrentValue/current-value", auth, async (req, res) => {
   try {
-    logDatabaseQuery('READ', 'User', `Finding user by ID: ${req.user._id}`);
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    console.log(`Portfolio request for: ${req.params.usernameOrCurrentValue}`);
+    
+    // Determine which user's portfolio to fetch
+    let targetUser;
+    if (req.params.usernameOrCurrentValue !== 'current-value') {
+      // Looking up another user
+      console.log('Looking up user:', req.params.usernameOrCurrentValue);
+      targetUser = await User.findOne({ username: req.params.usernameOrCurrentValue });
+      
+      if (!targetUser) {
+        console.log('User not found:', req.params.usernameOrCurrentValue);
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      console.log('Checking friendship status');
+      // Check if they are friends
+      const areFriends = await FriendRequest.findOne({
+        $or: [
+          { sender: req.user._id, receiver: targetUser._id, status: 'accepted' },
+          { sender: targetUser._id, receiver: req.user._id, status: 'accepted' }
+        ]
+      });
+
+      if (!areFriends) {
+        console.log('Users are not friends');
+        return res.status(403).json({ message: "You must be friends to view their portfolio" });
+      }
+      console.log('Users are friends, proceeding to fetch portfolio');
+    } else {
+      // Current user's portfolio
+      console.log('Fetching current user portfolio');
+      targetUser = req.user;
+      if (!targetUser) {
+        console.log('Current user not found in request');
+        return res.status(401).json({ message: "User not authenticated" });
+      }
     }
 
-    logDatabaseQuery('READ', 'Holding', `Getting all holdings for user ${req.user._id}`);
-    const holdings = await Holding.find({ user: req.user._id });
-    let totalValue = 0;
-    const holdingsWithCurrentPrice = [];
+    console.log('Fetching latest portfolio snapshot for user:', targetUser._id);
+    // Get their most recent portfolio snapshot
+    const latestSnapshot = await PortfolioSnapshot.findOne({
+      user: targetUser._id
+    }).sort({ timestamp: -1 });
 
-    for (const holding of holdings) {
+    if (!latestSnapshot) {
+      console.log('No snapshot found, returning balance only');
+      return res.json({
+        totalValue: targetUser.balance,
+        holdings: [],
+        cashBalance: targetUser.balance
+      });
+    }
+
+    console.log('Found snapshot, fetching current prices');
+    // Get current prices for all holdings
+    const holdingsWithCurrentPrice = [];
+    let totalValue = 0;
+
+    for (const holding of latestSnapshot.holdings) {
       try {
+        console.log(`Fetching price for ${holding.symbol}`);
         const quote = await finnhubGet("quote", {
-          symbol: holding.stockSymbol,
+          symbol: holding.symbol,
         });
         const currentPrice = quote.c;
-        const value = currentPrice * holding.stockQuantity;
+        const value = currentPrice * holding.quantity;
         totalValue += value;
 
         holdingsWithCurrentPrice.push({
-          symbol: holding.stockSymbol,
-          quantity: holding.stockQuantity,
-          purchasePrice: holding.stockPrice,
+          symbol: holding.symbol,
+          quantity: holding.quantity,
+          purchasePrice: holding.price,
           currentPrice: currentPrice,
           value: value,
-          change:
-            ((currentPrice - holding.stockPrice) / holding.stockPrice) * 100,
+          change: ((currentPrice - holding.price) / holding.price) * 100,
         });
       } catch (error) {
         console.error(
-          `Error fetching price for ${holding.stockSymbol}:`,
+          `Error fetching price for ${holding.symbol}:`,
           error
         );
       }
     }
 
-        res.json({
-            totalValue: totalValue + user.balance,
-            holdings: holdingsWithCurrentPrice,
-            cashBalance: user.balance
-        });
-    } catch (error) {
-        console.error('Get current portfolio value error:', error);
-        res.status(500).json({ message: 'Error fetching current portfolio value' });
-    }
+    console.log('Successfully compiled portfolio data');
+    res.json({
+      totalValue: totalValue + targetUser.balance,
+      holdings: holdingsWithCurrentPrice,
+      cashBalance: targetUser.balance
+    });
+  } catch (error) {
+    console.error('Get portfolio value error:', error);
+    // Send more detailed error information
+    res.status(500).json({ 
+      message: 'Error fetching portfolio value',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
 });
 
 // Stock search endpoint
