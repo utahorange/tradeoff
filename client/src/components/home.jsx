@@ -15,6 +15,8 @@ const Home = ({ setLoggedInUser }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [balance, setBalance] = useState(0);
+  const [portfolioValue, setPortfolioValue] = useState(0);
+  const [totalValue, setTotalValue] = useState(0);
   const [friendRequests, setFriendRequests] = useState([]);
   const [friends, setFriends] = useState([]);
   const [portfolioHistory, setPortfolioHistory] = useState([]);
@@ -29,12 +31,15 @@ const Home = ({ setLoggedInUser }) => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const [holdingsRes, balanceRes, friendRequestsRes, friendsRes, portfolioHistoryRes] =
+        const [holdingsRes, balanceRes, portfolioRes, friendRequestsRes, friendsRes, portfolioHistoryRes] =
           await Promise.all([
             axios.get("http://localhost:8080/api/holdings", {
               headers: { Authorization: `Bearer ${token}` },
             }),
             axios.get("http://localhost:8080/api/balance", {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            axios.get("http://localhost:8080/api/portfolio/current-value", {
               headers: { Authorization: `Bearer ${token}` },
             }),
             axios.get("http://localhost:8080/api/friends/requests", {
@@ -50,6 +55,9 @@ const Home = ({ setLoggedInUser }) => {
 
         setHoldings(holdingsRes.data.holdings);
         setBalance(balanceRes.data.balance);
+        const stockValue = portfolioRes.data.totalValue - portfolioRes.data.cashBalance;
+        setPortfolioValue(stockValue);
+        setTotalValue(stockValue + balanceRes.data.balance);
         setFriendRequests(friendRequestsRes.data.requests || []);
         setFriends(friendsRes.data.friends || []);
               
@@ -101,11 +109,25 @@ const Home = ({ setLoggedInUser }) => {
           </div>
         </header>
         <div className="dashboard-summary">
-          <div className="balance-section">
-            <h2>My Stock Holdings</h2>
+          <div className="portfolio-overview">
+            <h2>Portfolio Overview</h2>
+            <div className="balance-cards">
+              <div className="balance-card">
+                <h3>Total Portfolio Value</h3>
+                <p className="value">${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              </div>
+              <div className="balance-card">
+                <h3>Stock Holdings Value</h3>
+                <p className="value">${portfolioValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              </div>
+              <div className="balance-card">
+                <h3>Cash Balance</h3>
+                <p className="value">${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              </div>
+            </div>
           </div>
           <div className="holdings-section">
-            <h2>Balance: ${balance.toFixed(2)}</h2>
+            <h2>My Stock Holdings</h2>
           </div>
         </div>
         {/* Holdings Cards Scroll */}
